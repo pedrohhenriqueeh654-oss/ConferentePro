@@ -1,35 +1,559 @@
-# Gradle files
-.gradle/
-build/
-.kotlin/
+import os
+import zipfile
 
-# Local configuration file (sdk path, etc)
-local.properties
+# Estrutura e arquivos completos do projeto Conferente Pro
+arquivos_projeto = {
+    # Raiz do Projeto
+    "settings.gradle.kts": """pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+rootProject.name = "ConferentePro"
+include(":app")
+""",
 
-# Log/OS Files
-*.log
+    "build.gradle.kts": """plugins {
+    id("com.android.application") version "8.5.1" apply false
+    id("org.jetbrains.kotlin.android") version "1.9.24" apply false
+    id("org.jetbrains.kotlin.kapt") version "1.9.24" apply false
+}
+""",
 
-# Android Studio generated files and folders
-captures/
-.externalNativeBuild/
-.cxx/
-*.aab
-*.apk
-output-metadata.json
+    "gradle.properties": """org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+android.useAndroidX=true
+android.enableJetifier=true
+kotlin.code.style=official
+""",
 
-# IntelliJ
-*.iml
-.idea/
-misc.xml
-deploymentTargetDropDown.xml
-render.experimental.xml
+    # Configuração do Módulo App
+    "app/build.gradle.kts": """plugins {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.kapt")
+}
 
-# Keystore files
-*.jks
-*.keystore
+android {
+    namespace = "com.conferentepro.app"
+    compileSdk = 34
 
-# Google Services (e.g. APIs or Firebase)
-google-services.json
+    defaultConfig {
+        applicationId = "com.conferentepro.app"
+        minSdk = 26
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0.0"
+        vectorDrawables.useSupportLibrary = true
+    }
 
-# Android Profiling
-*.hprof
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+    buildFeatures {
+        compose = true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.14"
+    }
+}
+
+dependencies {
+    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
+    implementation("androidx.activity:activity-compose:1.9.1")
+    implementation(platform("androidx.compose:compose-bom:2024.06.00"))
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-graphics")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.compose.material3:material3:1.2.1")
+    implementation("androidx.compose.material:material-icons-extended:1.6.8")
+    implementation("androidx.navigation:navigation-compose:2.7.7")
+
+    // Room Database Local
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
+
+    // Lembretes & Background Worker
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
+
+    // Serialização JSON
+    implementation("com.google.code.gson:gson:2.11.0")
+}
+""",
+
+    # Manifesto Android
+    "app/src/main/AndroidManifest.xml": """<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.VIBRATE"/>
+
+    <application
+        android:name=".ConferenteProApp"
+        android:allowBackup="true"
+        android:icon="@android:drawable/ic_dialog_info"
+        android:label="Conferente PRO"
+        android:roundIcon="@android:drawable/ic_dialog_info"
+        android:supportsRtl="true"
+        android:theme="@android:style/Theme.Material.NoActionBar">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <receiver
+            android:name=".worker.BootReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>
+""",
+
+    # Application Class
+    "app/src/main/java/com/conferentepro/app/ConferenteProApp.kt": """package com.conferentepro.app
+
+import android.app.Application
+import com.conferentepro.app.worker.ReminderWorker
+
+class ConferenteProApp : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        ReminderWorker.agendarVerificacaoDiaria(this)
+    }
+}
+""",
+
+    # MainActivity
+    "app/src/main/java/com/conferentepro/app/MainActivity.kt": """package com.conferentepro.app
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import com.conferentepro.app.ui.navigation.MainAppNavigation
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            MainAppNavigation()
+        }
+    }
+}
+""",
+
+    # Enums e Modelos
+    "app/src/main/java/com/conferentepro/app/domain/model/Enums.kt": """package com.conferentepro.app.domain.model
+
+enum class CategoriaDemanda(val label: String) {
+    RECEBIMENTO("Recebimento"),
+    CONFERENCIA("Conferência"),
+    ESTOQUE("Estoque"),
+    CD("Centro de Distribuição"),
+    FORNECEDOR("Fornecedor"),
+    TROCAS("Trocas"),
+    AVARIAS("Avarias"),
+    NOTAS_FISCAIS("Notas Fiscais"),
+    DIVERGENCIAS("Divergências"),
+    DEVOLUCOES("Devoluções"),
+    FALTAS_SOBRAS("Faltas e Sobras"),
+    OUTROS("Outros")
+}
+
+enum class Prioridade(val label: String) {
+    BAIXA("Baixa"),
+    MEDIA("Média"),
+    ALTA("Alta"),
+    URGENTE("Urgente")
+}
+
+enum class StatusDemanda(val label: String) {
+    PENDENTE("Pendente"),
+    EM_ANDAMENTO("Em andamento"),
+    AGUARDANDO_CD("Aguardando CD"),
+    AGUARDANDO_FORNECEDOR("Aguardando Fornecedor"),
+    AGUARDANDO_TERCEIROS("Aguardando Terceiros"),
+    CONCLUIDA("Concluída"),
+    CANCELADA("Cancelada")
+}
+
+enum class TipoResponsabilidade(val label: String) {
+    MINHA_RESPONSABILIDADE("Usuário"),
+    TERCEIROS("Terceiros"),
+    AGUARDANDO_RETORNO("Aguardando Retorno")
+}
+
+enum class TipoAcaoHistorico {
+    CRIACAO,
+    MUDANCA_STATUS,
+    ENCAMINHAMENTO,
+    COBRANCA_FEITA,
+    CONCLUSAO_CONFIRMADA
+}
+""",
+
+    # Entidades Room
+    "app/src/main/java/com/conferentepro/app/data/local/entity/Entities.kt": """package com.conferentepro.app.data.local.entity
+
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import com.conferentepro.app.domain.model.*
+
+@Entity(tableName = "demandas")
+data class DemandaEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val titulo: String,
+    val descricao: String = "",
+    val categoria: CategoriaDemanda,
+    val prioridade: Prioridade,
+    val status: StatusDemanda = StatusDemanda.PENDENTE,
+    val responsabilidade: TipoResponsabilidade = TipoResponsabilidade.MINHA_RESPONSABILIDADE,
+    val dataCriacao: Long = System.currentTimeMillis(),
+    val dataPrazoFinal: Long,
+    val setorRelacionado: String = "",
+    val responsavelExterno: String? = null,
+    val observacoes: String = "",
+    val ultimaAtualizacao: Long = System.currentTimeMillis(),
+    val concluida: Boolean = false
+)
+
+@Entity(tableName = "historico_timeline")
+data class HistoricoTimelineEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val demandaId: Long,
+    val dataHoraRegistro: Long = System.currentTimeMillis(),
+    val tipoAcao: TipoAcaoHistorico,
+    val responsavelAcao: String,
+    val descricao: String,
+    val respostaOuRetorno: String? = null
+)
+""",
+
+    # Room Database & DAOs
+    "app/src/main/java/com/conferentepro/app/data/local/AppDatabase.kt": """package com.conferentepro.app.data.local
+
+import android.content.Context
+import androidx.room.*
+import com.conferentepro.app.data.local.entity.*
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface DemandaDao {
+    @Query("SELECT * FROM demandas ORDER BY dataPrazoFinal ASC")
+    fun getAllDemandas(): Flow<List<DemandaEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertDemanda(demanda: DemandaEntity): Long
+
+    @Update
+    suspend fun updateDemanda(demanda: DemandaEntity)
+}
+
+@Dao
+interface HistoricoDao {
+    @Query("SELECT * FROM historico_timeline WHERE demandaId = :demandaId ORDER BY dataHoraRegistro DESC")
+    fun getHistorico(demandaId: Long): Flow<List<HistoricoTimelineEntity>>
+
+    @Insert
+    suspend fun insertHistorico(item: HistoricoTimelineEntity): Long
+}
+
+@Database(entities = [DemandaEntity::class, HistoricoTimelineEntity::class], version = 1, exportSchema = false)
+abstract class AppDatabase : RoomDatabase() {
+    abstract fun demandaDao(): DemandaDao
+    abstract fun historicoDao(): HistoricoDao
+
+    companion object {
+        @Volatile private var instance: AppDatabase? = null
+        fun getInstance(ctx: Context): AppDatabase = instance ?: synchronized(this) {
+            instance ?: Room.databaseBuilder(ctx.applicationContext, AppDatabase::class.java, "conferente_pro.db")
+                .fallbackToDestructiveMigration().build().also { instance = it }
+        }
+    }
+}
+""",
+
+    # Background Worker & Boot Receiver
+    "app/src/main/java/com/conferentepro/app/worker/ReminderWorker.kt": """package com.conferentepro.app.worker
+
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
+import android.os.Build
+import androidx.core.app.NotificationCompat
+import androidx.work.*
+import com.conferentepro.app.data.local.AppDatabase
+import kotlinx.coroutines.flow.first
+import java.util.concurrent.TimeUnit
+
+class ReminderWorker(private val ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx, params) {
+    override suspend fun doWork(): Result {
+        val database = AppDatabase.getInstance(ctx)
+        val demandas = database.demandaDao().getAllDemandas().first()
+        val agora = System.currentTimeMillis()
+        val atrasadas = demandas.filter { !it.concluida && it.dataPrazoFinal < agora }
+
+        if (atrasadas.isNotEmpty()) {
+            val channelId = "CONFERENTE_ALERTAS"
+            val manager = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                manager.createNotificationChannel(
+                    NotificationChannel(channelId, "Alertas Conferente", NotificationManager.IMPORTANCE_HIGH)
+                )
+            }
+            val notif = NotificationCompat.Builder(ctx, channelId)
+                .setSmallIcon(android.R.drawable.ic_dialog_alert)
+                .setContentTitle("Atenção Conferente: Demandas Atrasadas")
+                .setContentText("Você possui ${atrasadas.size} pendência(s) vencidas!")
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .build()
+            manager.notify(101, notif)
+        }
+        return Result.success()
+    }
+
+    companion object {
+        fun agendarVerificacaoDiaria(ctx: Context) {
+            val req = PeriodicWorkRequestBuilder<ReminderWorker>(4, TimeUnit.HOURS).build()
+            WorkManager.getInstance(ctx).enqueueUniquePeriodicWork("ConferenteVerificacao", ExistingPeriodicWorkPolicy.KEEP, req)
+        }
+    }
+}
+""",
+
+    "app/src/main/java/com/conferentepro/app/worker/BootReceiver.kt": """package com.conferentepro.app.worker
+
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+
+class BootReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
+            ReminderWorker.agendarVerificacaoDiaria(context)
+        }
+    }
+}
+""",
+
+    # Navegação e Telas
+    "app/src/main/java/com/conferentepro/app/ui/navigation/MainAppNavigation.kt": """package com.conferentepro.app.ui.navigation
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.conferentepro.app.data.local.AppDatabase
+import com.conferentepro.app.data.local.entity.DemandaEntity
+import com.conferentepro.app.domain.model.CategoriaDemanda
+import com.conferentepro.app.domain.model.Prioridade
+import kotlinx.coroutines.launch
+
+val AzulMarinho = Color(0xFF0B192C)
+val LaranjaUltra = Color(0xFFFF6500)
+val VermelhoAtraso = Color(0xFFD32F2F)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MainAppNavigation() {
+    val ctx = LocalContext.current
+    val db = remember { AppDatabase.getInstance(ctx) }
+    val scope = rememberCoroutineScope()
+    var telaSelecionada by remember { mutableStateOf(0) }
+    var showDialogCriar by remember { mutableStateOf(false) }
+    var novoTitulo by remember { mutableStateOf("") }
+    val demandas by db.demandaDao().getAllDemandas().collectAsState(initial = emptyList())
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("CONFERENTE PRO", fontWeight = FontWeight.Bold, color = Color.White) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = AzulMarinho)
+            )
+        },
+        bottomBar = {
+            NavigationBar(containerColor = AzulMarinho) {
+                NavigationBarItem(
+                    selected = telaSelecionada == 0,
+                    onClick = { telaSelecionada = 0 },
+                    icon = { Icon(Icons.Default.Dashboard, contentDescription = "Início", tint = if (telaSelecionada == 0) LaranjaUltra else Color.LightGray) },
+                    label = { Text("Início", color = if (telaSelecionada == 0) LaranjaUltra else Color.LightGray) }
+                )
+                NavigationBarItem(
+                    selected = telaSelecionada == 1,
+                    onClick = { telaSelecionada = 1 },
+                    icon = { Icon(Icons.Default.Checklist, contentDescription = "Demandas", tint = if (telaSelecionada == 1) LaranjaUltra else Color.LightGray) },
+                    label = { Text("Demandas", color = if (telaSelecionada == 1) LaranjaUltra else Color.LightGray) }
+                )
+            }
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                containerColor = LaranjaUltra,
+                contentColor = Color.White,
+                onClick = { showDialogCriar = true }
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Nova Demanda")
+            }
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .background(Color(0xFFF5F7FA))
+                .padding(16.dp)
+        ) {
+            if (telaSelecionada == 0) {
+                // Card Atenção Necessária
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = VermelhoAtraso.copy(alpha = 0.1f)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Warning, contentDescription = null, tint = VermelhoAtraso)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("ATENÇÃO NECESSÁRIA", fontWeight = FontWeight.Bold, color = VermelhoAtraso)
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Total de pendências registradas: ${demandas.size}", fontSize = 14.sp)
+                    }
+                }
+            } else {
+                // Lista de Demandas
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(demandas.size) { i ->
+                        val item = demandas[i]
+                        Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                            Column(modifier = Modifier.padding(14.dp)) {
+                                Text(item.titulo, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = AzulMarinho)
+                                Text("Categoria: ${item.categoria.label} | Prioridade: ${item.prioridade.label}", fontSize = 12.sp, color = Color.Gray)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (showDialogCriar) {
+        AlertDialog(
+            onDismissRequest = { showDialogCriar = false },
+            title = { Text("Nova Demanda Operacional") },
+            text = {
+                OutlinedTextField(
+                    value = novoTitulo,
+                    onValueChange = { novoTitulo = it },
+                    label = { Text("O que precisa ser feito?") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                Button(
+                    colors = ButtonDefaults.buttonColors(containerColor = LaranjaUltra),
+                    onClick = {
+                        if (novoTitulo.isNotBlank()) {
+                            scope.launch {
+                                db.demandaDao().insertDemanda(
+                                    DemandaEntity(
+                                        titulo = novoTitulo,
+                                        categoria = CategoriaDemanda.RECEBIMENTO,
+                                        prioridade = Prioridade.ALTA,
+                                        dataPrazoFinal = System.currentTimeMillis() + 86400000L
+                                    )
+                                )
+                                novoTitulo = ""
+                                showDialogCriar = false
+                            }
+                        }
+                    }
+                ) { Text("Salvar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDialogCriar = false }) { Text("Cancelar") }
+            }
+        )
+    }
+}
+""",
+
+    # GitHub Actions Workflow para gerar APK na Nuvem
+    ".github/workflows/build_apk.yml": """name: Gerar APK Automatico
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configurar Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Permissao de Execucao no Gradle
+        run: gradle wrapper
+      - name: Compilar APK Debug
+        run: ./gradlew assembleDebug --stacktrace
+      - name: Disponibilizar APK para Download
+        uses: actions/upload-artifact@v4
+        with:
+          name: ConferentePro-Instalavel
+          path: app/build/outputs/apk/debug/app-debug.apk
+"""
+}
+
+# Criador do Arquivo ZIP
+nome_zip = "ConferentePro.zip"
+print("--> Criando todos os arquivos operacionais do CONFERENTE PRO...")
+
+with zipfile.ZipFile(nome_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
+    for caminho, conteudo in arquivos_projeto.items():
+        zipf.writestr(caminho, conteudo)
+        print(f" [+] Incluído: {caminho}")
+
+print(f"\n[SUCESSO] O arquivo '{nome_zip}' foi gerado na mesma pasta!")
