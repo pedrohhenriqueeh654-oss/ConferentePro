@@ -4,7 +4,7 @@ name: Gerar APK do Conferente Pro
 on:
   workflow_dispatch:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, 'release/v1.2.0-cd-mensal' ]
 
 permissions:
   contents: read
