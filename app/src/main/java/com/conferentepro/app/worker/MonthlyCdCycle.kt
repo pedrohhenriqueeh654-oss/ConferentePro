@@ -11,7 +11,7 @@ import java.time.format.DateTimeFormatter
  */
 object MonthlyCdCycle {
     private const val PREFS = "monthly_cd_cycle"
-    private const val KEY_CLOSED_MONTH = "closed_month"
+    private fun closedKey(month: YearMonth) = "closed_month_$month"
     private const val KEY_LAST_NOTIFICATION_DAY = "last_notification_day"
 
     data class State(
@@ -32,7 +32,7 @@ object MonthlyCdCycle {
     fun currentState(context: Context, today: LocalDate = LocalDate.now()): State {
         val cycleMonth = YearMonth.from(today).minusMonths(1)
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val closed = prefs.getString(KEY_CLOSED_MONTH, null) == cycleMonth.toString()
+        val closed = prefs.getBoolean(closedKey(cycleMonth), false)
         val overdue = today.dayOfMonth > 15
         return State(cycleMonth, closed, overdue, (16L - today.dayOfMonth).coerceAtLeast(0L))
     }
@@ -41,7 +41,7 @@ object MonthlyCdCycle {
         val cycleMonth = YearMonth.from(today).minusMonths(1)
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .edit()
-            .putString(KEY_CLOSED_MONTH, cycleMonth.toString())
+            .putBoolean(closedKey(cycleMonth), true)
             .apply()
     }
 
