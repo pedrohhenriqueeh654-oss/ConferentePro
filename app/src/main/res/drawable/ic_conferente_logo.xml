@@ -1,8 +1,18 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp" android:height="108dp"
-    android:viewportWidth="108" android:viewportHeight="108">
-    <path android:fillColor="#FFFFFF" android:pathData="M30,16h48c5,0 9,4 9,9v58c0,5 -4,9 -9,9H30c-5,0 -9,-4 -9,-9V25c0,-5 4,-9 9,-9z"/>
-    <path android:fillColor="#123B46" android:pathData="M38,30h32v6H38zM38,44h32v6H38zM38,58h18v6H38z"/>
-    <path android:fillColor="#39B8A5" android:pathData="M55,70l8,8 17,-20 6,5 -22,26 -14,-14z"/>
-    <path android:fillColor="#087E83" android:pathData="M14,20h8v68h-8zM86,20h8v68h-8z"/>
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Caixa de papelão estilizada -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,13 L91,32 L54,51 L17,32 Z M17,32 L17,73 L54,94 L54,51 Z M91,32 L91,73 L54,94 L54,51 Z" />
+    <!-- Vincos e divisões da caixa -->
+    <path
+        android:fillColor="#123B46"
+        android:pathData="M51,52 L57,52 L57,88 L51,88 Z M24,35 L27,32 L54,46 L81,32 L84,35 L54,50 Z" />
+    <!-- Selo de conferência -->
+    <path
+        android:fillColor="#39B8A5"
+        android:pathData="M69,61 L76,68 L88,53 L94,58 L77,79 L64,66 Z" />
 </vector>
