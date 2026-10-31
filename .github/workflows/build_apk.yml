@@ -13,6 +13,7 @@ jobs:
   build:
     name: Compilar APK
     runs-on: ubuntu-latest
+
     steps:
       - name: Baixar o projeto
         uses: actions/checkout@v4
@@ -31,12 +32,22 @@ jobs:
       - name: Criar Gradle Wrapper
         run: gradle wrapper --gradle-version 8.7
 
-      - name: Compilar APK
-        run: ./gradlew assembleDebug --stacktrace
+      - name: Preparar chave digital
+        env:
+          SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
+        run: |
+          printf '%s' "$SIGNING_KEY_BASE64" | base64 --decode > "$RUNNER_TEMP/conferentepro-release.jks"
+
+      - name: Compilar APK assinado
+        env:
+          SIGNING_STORE_FILE: ${{ runner.temp }}/conferentepro-release.jks
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+        run: ./gradlew assembleRelease --stacktrace
 
       - name: Disponibilizar APK
         uses: actions/upload-artifact@v4
         with:
-          name: ConferentePro-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: ConferentePro-Release
+          path: app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
