@@ -56,8 +56,8 @@ fun AssistenteOperacionalScreen(demandas: List<DemandaEntity>) {
         val aguardando = abertas.filter { it.status == StatusDemanda.AGUARDANDO_CD || it.status == StatusDemanda.AGUARDANDO_FORNECEDOR || it.status == StatusDemanda.AGUARDANDO_TERCEIROS }
         Card(colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("\${abertas.size} demandas em aberto • \${atrasadas.size} atrasadas", color = AzulMarinho, fontWeight = FontWeight.SemiBold)
-                Text("\${aguardando.size} aguardando CD, fornecedor ou terceiros", color = Color.DarkGray, fontSize = 13.sp)
+                Text("${abertas.size} demandas em aberto • ${atrasadas.size} atrasadas", color = AzulMarinho, fontWeight = FontWeight.SemiBold)
+                Text("${aguardando.size} aguardando CD, fornecedor ou terceiros", color = Color.DarkGray, fontSize = 13.sp)
                 if (atrasadas.isNotEmpty()) {
                     Text("Prioridade de atenção: verifique os prazos vencidos e registre a cobrança ou atualização no histórico.", color = Color(0xFFB3261E), fontSize = 12.sp)
                 } else {
@@ -120,15 +120,15 @@ private fun responderOperacionalmente(pergunta: String, demandas: List<DemandaEn
     return when {
         listOf("atras", "vencid", "prazo").any { q.contains(it) } -> {
             if (atrasadas.isEmpty()) "Não encontrei demandas atrasadas. Confira se os prazos cadastrados estão corretos."
-            else "Encontrei \${atrasadas.size} demanda(s) atrasada(s):\n" + atrasadas.take(8).joinToString("\n") {
-                "• \${it.titulo} — prazo \${fmt.format(Instant.ofEpochMilli(it.dataPrazoFinal))}"
+            else "Encontrei ${atrasadas.size} demanda(s) atrasada(s):\n" + atrasadas.take(8).joinToString("\n") {
+                "• ${it.titulo} — prazo ${fmt.format(Instant.ofEpochMilli(it.dataPrazoFinal))}"
             } + "\nSugestão: confirme o último responsável, registre a cobrança e atualize a previsão. Não marque como concluída sem confirmação."
         }
         q.contains("fornecedor") || q.contains("troca") -> listarAguardando("fornecedor", fornecedor)
         q.contains("cd") || q.contains("centro de distribu") -> listarAguardando("CD", doCd)
         q.contains("terceir") -> listarAguardando("terceiros", terceiros)
         q.contains("resumo") || q.contains("situa") || q.contains("pend") -> {
-            "Resumo operacional:\n• \${abertas.size} demanda(s) em aberto\n• \${atrasadas.size} atrasada(s)\n• \${doCd.size} aguardando CD\n• \${fornecedor.size} aguardando fornecedor\n• \${terceiros.size} aguardando terceiros\n\nSugestão: priorize primeiro as vencidas e depois as solicitações externas mais antigas."
+            "Resumo operacional:\n• ${abertas.size} demanda(s) em aberto\n• ${atrasadas.size} atrasada(s)\n• ${doCd.size} aguardando CD\n• ${fornecedor.size} aguardando fornecedor\n• ${terceiros.size} aguardando terceiros\n\nSugestão: priorize primeiro as vencidas e depois as solicitações externas mais antigas."
         }
         q.contains("avaria") || q.contains("danific") -> "Para registrar uma avaria, descreva produto, código/EAN, quantidade, condição encontrada, data do recebimento e evidências fotográficas. Depois registre o protocolo e se a tratativa ficará com o CD ou fornecedor."
         q.contains("receb") || q.contains("confer") -> "Na conferência, compare produto, código/EAN e quantidade com o documento de entrada. Registre divergências separadamente, informe o tipo de ocorrência e mantenha evidências e protocolo vinculados à demanda."
@@ -137,7 +137,7 @@ private fun responderOperacionalmente(pergunta: String, demandas: List<DemandaEn
 }
 
 private fun listarAguardando(nome: String, lista: List<DemandaEntity>): String {
-    if (lista.isEmpty()) return "Não há demandas abertas marcadas como aguardando \${nome}."
-    return "\${lista.size} demanda(s) aguardando \${nome}:\n" + lista.take(8).joinToString("\n") { "• \${it.titulo}" } +
+    if (lista.isEmpty()) return "Não há demandas abertas marcadas como aguardando ${nome}."
+    return "${lista.size} demanda(s) aguardando ${nome}:\n" + lista.take(8).joinToString("\n") { "• ${it.titulo}" } +
         "\nSugestão: registre a data do último contato, protocolo e previsão de retorno. A demanda só deve ser encerrada após confirmação."
 }
