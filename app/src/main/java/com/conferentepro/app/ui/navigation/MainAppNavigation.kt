@@ -38,6 +38,7 @@ fun MainAppNavigation() {
     var showDialogCriar by remember { mutableStateOf(false) }
     var showDialogFecharCd by remember { mutableStateOf(false) }
     var novoTitulo by remember { mutableStateOf("") }
+    var filtroDemandas by remember { mutableStateOf("") }
     var hoje by remember { mutableStateOf(LocalDate.now()) }
     var cicloCd by remember { mutableStateOf(MonthlyCdCycle.currentState(ctx, hoje)) }
     val demandas by db.demandaDao().getAllDemandas().collectAsState(initial = emptyList())
@@ -50,7 +51,12 @@ fun MainAppNavigation() {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("CONFERENTE PRO", fontWeight = FontWeight.Bold, color = Color.White) },
+                title = {
+                    Column(verticalArrangement = Arrangement.Center) {
+                        Text("CONFERENTE PRO", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 18.sp)
+                        Text("Desenvolvido por @eanpdro e GPT", color = Color.White.copy(alpha = 0.72f), fontSize = 10.sp, letterSpacing = 0.25.sp)
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = AzulMarinho)
             )
         },
@@ -152,13 +158,40 @@ fun MainAppNavigation() {
                     }
                 }
             } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(demandas.size) { i ->
-                        val item = demandas[i]
-                        Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color.White)) {
-                            Column(modifier = Modifier.padding(14.dp)) {
-                                Text(item.titulo, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = AzulMarinho)
-                                Text("Categoria: ${item.categoria.label} | Prioridade: ${item.prioridade.label}", fontSize = 12.sp, color = Color.Gray)
+                OutlinedTextField(
+                    value = filtroDemandas,
+                    onValueChange = { filtroDemandas = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    label = { Text("Buscar demanda") },
+                    placeholder = { Text("Digite parte do título ou descrição") },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar") },
+                    trailingIcon = {
+                        if (filtroDemandas.isNotBlank()) {
+                            IconButton(onClick = { filtroDemandas = "" }) {
+                                Icon(Icons.Default.Close, contentDescription = "Limpar busca")
+                            }
+                        }
+                    }
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                val demandasFiltradas = demandas.filter {
+                    it.titulo.contains(filtroDemandas, ignoreCase = true) ||
+                        it.descricao.contains(filtroDemandas, ignoreCase = true)
+                }
+                if (demandasFiltradas.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+                        Text(if (demandas.isEmpty()) "Nenhuma demanda cadastrada ainda." else "Nenhuma demanda encontrada.", color = Color.Gray)
+                    }
+                } else {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(demandasFiltradas.size) { i ->
+                            val item = demandasFiltradas[i]
+                            Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                                Column(modifier = Modifier.padding(14.dp)) {
+                                    Text(item.titulo, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = AzulMarinho)
+                                    Text("Categoria: ${item.categoria.label} | Prioridade: ${item.prioridade.label}", fontSize = 12.sp, color = Color.Gray)
+                                }
                             }
                         }
                     }
