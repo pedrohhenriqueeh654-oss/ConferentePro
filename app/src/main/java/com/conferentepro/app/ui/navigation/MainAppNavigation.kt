@@ -25,6 +25,8 @@ import com.conferentepro.app.domain.model.StatusDemanda
 import com.conferentepro.app.worker.MonthlyCdCycle
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.Instant
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 val AzulMarinho = Color(0xFF123B46)
@@ -41,6 +43,10 @@ fun MainAppNavigation() {
     var showDialogCriar by remember { mutableStateOf(false) }
     var showDialogFecharCd by remember { mutableStateOf(false) }
     var novoTitulo by remember { mutableStateOf("") }
+    var prazoIndeterminado by remember { mutableStateOf(false) }
+    var mostrarSeletorData by remember { mutableStateOf(false) }
+    var dataPrazoSelecionada by remember { mutableStateOf(LocalDate.now().plusDays(1)) }
+    val seletorDataState = rememberDatePickerState(initialSelectedDateMillis = dataPrazoSelecionada.atStartOfDay(ZoneId.of("UTC")).toInstant().toEpochMilli())
     var filtroDemandas by remember { mutableStateOf("") }
     var hoje by remember { mutableStateOf(LocalDate.now()) }
     var cicloCd by remember { mutableStateOf(MonthlyCdCycle.currentState(ctx, hoje)) }
@@ -102,12 +108,12 @@ fun MainAppNavigation() {
                     !it.concluida && it.status != StatusDemanda.CONCLUIDA &&
                         it.status != StatusDemanda.CANCELADA
                 }
-                val totalAtrasadas = demandasAtivas.count { it.dataPrazoFinal < agora }
+                val totalAtrasadas = demandasAtivas.count { it.dataPrazoFinal != Long.MAX_VALUE && it.dataPrazoFinal < agora }
                 val totalPendentes = demandasAtivas.count {
-                    it.status == StatusDemanda.PENDENTE && it.dataPrazoFinal >= agora
+                    it.status == StatusDemanda.PENDENTE && (it.dataPrazoFinal == Long.MAX_VALUE || it.dataPrazoFinal >= agora)
                 }
                 val totalEmAndamento = demandasAtivas.count {
-                    it.status != StatusDemanda.PENDENTE && it.dataPrazoFinal >= agora
+                    it.status != StatusDemanda.PENDENTE && (it.dataPrazoFinal == Long.MAX_VALUE || it.dataPrazoFinal >= agora)
                 }
                 val totalConcluidas = demandas.count {
                     it.concluida || it.status == StatusDemanda.CONCLUIDA
@@ -159,22 +165,6 @@ fun MainAppNavigation() {
                         )
                     }
                     Spacer(modifier = Modifier.height(16.dp))
-                    Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = VermelhoAtraso.copy(alpha = 0.1f)),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Warning, contentDescription = null, tint = VermelhoAtraso)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("ATENÇÃO NECESSÁRIA", fontWeight = FontWeight.Bold, color = VermelhoAtraso)
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text("Total de pendências registradas: ${demandas.size}", fontSize = 14.sp)
-                    }
-                }
-
                 Spacer(modifier = Modifier.height(12.dp))
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -266,6 +256,27 @@ fun MainAppNavigation() {
         }
     }
 
+
+    if (mostrarSeletorData) {
+        DatePickerDialog(
+            onDismissRequest = { mostrarSeletorData = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    seletorDataState.selectedDateMillis?.let { millis ->
+                        dataPrazoSelecionada = Instant.ofEpochMilli(millis)
+                            .atZone(ZoneId.of("UTC")).toLocalDate()
+                    }
+                    mostrarSeletorData = false
+                }) { Text("Confirmar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarSeletorData = false }) { Text("Cancelar") }
+            }
+        ) {
+            DatePicker(state = seletorDataState)
+        }
+    }
+
     if (showDialogFecharCd) {
         AlertDialog(
             onDismissRequest = { showDialogFecharCd = false },
@@ -289,12 +300,35 @@ fun MainAppNavigation() {
             onDismissRequest = { showDialogCriar = false },
             title = { Text("Nova Demanda Operacional") },
             text = {
-                OutlinedTextField(
-                    value = novoTitulo,
-                    onValueChange = { novoTitulo = it },
-                    label = { Text("O que precisa ser feito?") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = novoTitulo,
+                        onValueChange = { novoTitulo = it },
+                        label = { Text("O que precisa ser feito?") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                    Text("Prazo para realização", fontWeight = FontWeight.SemiBold, color = AzulMarinho)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(selected = !prazoIndeterminado, onClick = { prazoIndeterminado = false })
+                        Text("Com prazo")
+                        Spacer(modifier = Modifier.width(12.dp))
+                        RadioButton(selected = prazoIndeterminado, onClick = { prazoIndeterminado = true })
+                        Text("Indeterminado")
+                    }
+                    if (!prazoIndeterminado) {
+                        OutlinedButton(
+                            onClick = { mostrarSeletorData = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(Icons.Default.CalendarMonth, contentDescription = null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Prazo: ${dataPrazoSelecionada.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))}")
+                        }
+                    } else {
+                        Text("Essa demanda não vencerá automaticamente.", color = Color.Gray, fontSize = 12.sp)
+                    }
+                }
             },
             confirmButton = {
                 Button(
@@ -307,10 +341,12 @@ fun MainAppNavigation() {
                                         titulo = novoTitulo,
                                         categoria = CategoriaDemanda.RECEBIMENTO,
                                         prioridade = Prioridade.ALTA,
-                                        dataPrazoFinal = System.currentTimeMillis() + 86400000L
+                                        dataPrazoFinal = if (prazoIndeterminado) Long.MAX_VALUE else dataPrazoSelecionada.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli() - 1L
                                     )
                                 )
                                 novoTitulo = ""
+                                prazoIndeterminado = false
+                                dataPrazoSelecionada = LocalDate.now().plusDays(1)
                                 showDialogCriar = false
                             }
                         }
