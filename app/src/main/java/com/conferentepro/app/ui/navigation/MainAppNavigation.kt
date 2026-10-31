@@ -19,7 +19,10 @@ import com.conferentepro.app.data.local.AppDatabase
 import com.conferentepro.app.data.local.entity.DemandaEntity
 import com.conferentepro.app.domain.model.CategoriaDemanda
 import com.conferentepro.app.domain.model.Prioridade
+import com.conferentepro.app.worker.MonthlyCdCycle
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 val AzulMarinho = Color(0xFF0B192C)
 val LaranjaUltra = Color(0xFFFF6500)
@@ -33,8 +36,16 @@ fun MainAppNavigation() {
     val scope = rememberCoroutineScope()
     var telaSelecionada by remember { mutableStateOf(0) }
     var showDialogCriar by remember { mutableStateOf(false) }
+    var showDialogFecharCd by remember { mutableStateOf(false) }
     var novoTitulo by remember { mutableStateOf("") }
+    var hoje by remember { mutableStateOf(LocalDate.now()) }
+    var cicloCd by remember { mutableStateOf(MonthlyCdCycle.currentState(ctx, hoje)) }
     val demandas by db.demandaDao().getAllDemandas().collectAsState(initial = emptyList())
+
+    fun atualizarCiclo() {
+        hoje = LocalDate.now()
+        cicloCd = MonthlyCdCycle.currentState(ctx, hoje)
+    }
 
     Scaffold(
         topBar = {
@@ -77,7 +88,6 @@ fun MainAppNavigation() {
                 .padding(16.dp)
         ) {
             if (telaSelecionada == 0) {
-                // Card Atenção Necessária
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = VermelhoAtraso.copy(alpha = 0.1f)),
@@ -93,8 +103,55 @@ fun MainAppNavigation() {
                         Text("Total de pendências registradas: ${demandas.size}", fontSize = 14.sp)
                     }
                 }
+
+                Spacer(modifier = Modifier.height(12.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = when {
+                            cicloCd.closed -> Color(0xFFE8F5E9)
+                            cicloCd.overdue -> Color(0xFFFFEBEE)
+                            else -> Color.White
+                        }
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Default.LocalShipping,
+                                contentDescription = null,
+                                tint = if (cicloCd.overdue && !cicloCd.closed) VermelhoAtraso else AzulMarinho
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(cicloCd.title, fontWeight = FontWeight.Bold, color = AzulMarinho)
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(cicloCd.description, fontSize = 14.sp, color = AzulMarinho)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            "Ciclo referente a ${cicloCd.month.format(DateTimeFormatter.ofPattern("MMMM/yyyy"))}",
+                            fontSize = 12.sp,
+                            color = Color.Gray
+                        )
+                        if (!cicloCd.closed) {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Button(
+                                onClick = { showDialogFecharCd = true },
+                                colors = ButtonDefaults.buttonColors(containerColor = LaranjaUltra),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Icon(Icons.Default.Check, contentDescription = null)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Marcar envio como concluído")
+                            }
+                        } else {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text("Ciclo encerrado manualmente.", color = Color(0xFF2E7D32), fontWeight = FontWeight.SemiBold)
+                        }
+                    }
+                }
             } else {
-                // Lista de Demandas
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(demandas.size) { i ->
                         val item = demandas[i]
@@ -108,6 +165,24 @@ fun MainAppNavigation() {
                 }
             }
         }
+    }
+
+    if (showDialogFecharCd) {
+        AlertDialog(
+            onDismissRequest = { showDialogFecharCd = false },
+            title = { Text("Confirmar envio ao CD") },
+            text = { Text("Confirma que os produtos vencidos do mês de referência foram enviados ao CD? O histórico do ciclo será preservado.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    MonthlyCdCycle.closeCurrentCycle(ctx, hoje)
+                    atualizarCiclo()
+                    showDialogFecharCd = false
+                }) { Text("Confirmar conclusão") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDialogFecharCd = false }) { Text("Voltar") }
+            }
+        )
     }
 
     if (showDialogCriar) {
