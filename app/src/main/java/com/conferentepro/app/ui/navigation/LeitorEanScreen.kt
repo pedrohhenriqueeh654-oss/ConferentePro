@@ -84,6 +84,12 @@ fun LeitorEanScreen() {
         Text("FICHA DE PRODUTO", color = AzulMarinho, fontWeight = FontWeight.Bold, fontSize = 18.sp)
         Text("Leia o EAN para abrir o cadastro e registrar avarias, vencimentos, divergências e destino.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
         Spacer(Modifier.height(10.dp))
+        OutlinedTextField(
+            value = ean, onValueChange = { ean = it.filter(Char::isDigit).take(14) },
+            modifier = Modifier.fillMaxWidth(), label = { Text("EAN / código de barras") },
+            singleLine = true, trailingIcon = { IconButton(onClick = { ean = "" }) { Icon(Icons.Default.Close, "Limpar") } }
+        )
+        Spacer(Modifier.height(8.dp))
         if (temPermissao) {
             CameraEanPreview(
                 modifier = Modifier.fillMaxWidth().height(190.dp),
@@ -100,12 +106,6 @@ fun LeitorEanScreen() {
                 }
             }
         }
-        Spacer(Modifier.height(8.dp))
-        OutlinedTextField(
-            value = ean, onValueChange = { ean = it.filter(Char::isDigit).take(14) },
-            modifier = Modifier.fillMaxWidth(), label = { Text("EAN / código de barras") },
-            singleLine = true, trailingIcon = { IconButton(onClick = { ean = "" }) { Icon(Icons.Default.Close, "Limpar") } }
-        )
         Spacer(Modifier.height(8.dp))
         if (ean.isBlank()) {
             Card(Modifier.fillMaxWidth()) { Text("Aguardando leitura. Aponte a câmera para o código de barras do produto.", Modifier.padding(16.dp), color = AzulMarinho) }
@@ -171,7 +171,7 @@ fun LeitorEanScreen() {
                             ExposedDropdownMenuBox(expanded = destinoExpandido, onExpandedChange = { destinoExpandido = it }) {
                                 OutlinedTextField(destino, { }, Modifier.fillMaxWidth().menuAnchor(), readOnly = true, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(destinoExpandido) })
                                 ExposedDropdownMenu(expanded = destinoExpandido, onDismissRequest = { destinoExpandido = false }) {
-                                    listOf("CD", "FORNECEDOR", "DESCARTE", "LOJA", "OUTRO").forEach { op ->
+                                    listOf("CD", "FORNECEDOR", "AVARIA", "LOJA", "VENCIDO").forEach { op ->
                                         DropdownMenuItem(text = { Text(op) }, onClick = { destino = op; destinoExpandido = false })
                                     }
                                 }
