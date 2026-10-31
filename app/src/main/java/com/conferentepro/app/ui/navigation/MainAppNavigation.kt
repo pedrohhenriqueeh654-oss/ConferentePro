@@ -83,6 +83,12 @@ fun MainAppNavigation() {
                     icon = { Icon(Icons.Default.Checklist, contentDescription = "Demandas", tint = if (telaSelecionada == 1) LaranjaUltra else Color.LightGray) },
                     label = { Text("Demandas", color = if (telaSelecionada == 1) LaranjaUltra else Color.LightGray) }
                 )
+                NavigationBarItem(
+                    selected = telaSelecionada == 2,
+                    onClick = { telaSelecionada = 2 },
+                    icon = { Icon(Icons.Default.AutoAwesome, contentDescription = "Assistente", tint = if (telaSelecionada == 2) LaranjaUltra else Color.LightGray) },
+                    label = { Text("Assistente", color = if (telaSelecionada == 2) LaranjaUltra else Color.LightGray) }
+                )
             }
         },
         floatingActionButton = {
@@ -213,7 +219,7 @@ fun MainAppNavigation() {
                     }
                 }
                 }
-            } else {
+            } else if (telaSelecionada == 1) {
                 OutlinedTextField(
                     value = filtroDemandas,
                     onValueChange = { filtroDemandas = it },
@@ -252,6 +258,8 @@ fun MainAppNavigation() {
                         }
                     }
                 }
+            } else {
+                AssistenteOperacionalScreen(demandas = demandas)
             }
         }
     }
