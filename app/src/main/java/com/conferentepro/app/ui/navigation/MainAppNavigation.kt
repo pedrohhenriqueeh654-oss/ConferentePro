@@ -24,8 +24,8 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-val AzulMarinho = Color(0xFF0B192C)
-val LaranjaUltra = Color(0xFFFF6500)
+val AzulMarinho = Color(0xFF123B46)
+val LaranjaUltra = Color(0xFF39B8A5)
 val VermelhoAtraso = Color(0xFFD32F2F)
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -84,7 +84,7 @@ fun MainAppNavigation() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(Color(0xFFF5F7FA))
+                .background(Color(0xFFF4F7F6))
                 .padding(16.dp)
         ) {
             if (telaSelecionada == 0) {
@@ -111,7 +111,7 @@ fun MainAppNavigation() {
                         containerColor = when {
                             cicloCd.closed -> Color(0xFFE8F5E9)
                             cicloCd.overdue -> Color(0xFFFFEBEE)
-                            else -> Color.White
+                            else -> Color(0xFFFFFFFF)
                         }
                     ),
                     shape = RoundedCornerShape(12.dp)
