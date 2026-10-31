@@ -1,6 +1,8 @@
 package com.conferentepro.app.ui.navigation
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,6 +21,7 @@ import com.conferentepro.app.data.local.AppDatabase
 import com.conferentepro.app.data.local.entity.DemandaEntity
 import com.conferentepro.app.domain.model.CategoriaDemanda
 import com.conferentepro.app.domain.model.Prioridade
+import com.conferentepro.app.domain.model.StatusDemanda
 import com.conferentepro.app.worker.MonthlyCdCycle
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -94,7 +97,69 @@ fun MainAppNavigation() {
                 .padding(16.dp)
         ) {
             if (telaSelecionada == 0) {
-                Card(
+                val agora = System.currentTimeMillis()
+                val demandasAtivas = demandas.filter {
+                    !it.concluida && it.status != StatusDemanda.CONCLUIDA &&
+                        it.status != StatusDemanda.CANCELADA
+                }
+                val totalAtrasadas = demandasAtivas.count { it.dataPrazoFinal < agora }
+                val totalPendentes = demandasAtivas.count {
+                    it.status == StatusDemanda.PENDENTE && it.dataPrazoFinal >= agora
+                }
+                val totalEmAndamento = demandasAtivas.count {
+                    it.status != StatusDemanda.PENDENTE && it.dataPrazoFinal >= agora
+                }
+                val totalConcluidas = demandas.count {
+                    it.concluida || it.status == StatusDemanda.CONCLUIDA
+                }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        StatusResumoCard(
+                            titulo = "PENDENTES",
+                            quantidade = totalPendentes,
+                            icone = Icons.Default.Assignment,
+                            cor = Color(0xFF287A9B),
+                            modifier = Modifier.weight(1f)
+                        )
+                        StatusResumoCard(
+                            titulo = "EM ANDAMENTO",
+                            quantidade = totalEmAndamento,
+                            icone = Icons.Default.Autorenew,
+                            cor = Color(0xFF087E83),
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        StatusResumoCard(
+                            titulo = "ATRASADAS",
+                            quantidade = totalAtrasadas,
+                            icone = Icons.Default.WarningAmber,
+                            cor = VermelhoAtraso,
+                            modifier = Modifier.weight(1f)
+                        )
+                        StatusResumoCard(
+                            titulo = "CONCLUÍDAS",
+                            quantidade = totalConcluidas,
+                            icone = Icons.Default.CheckCircle,
+                            cor = Color(0xFF388E3C),
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = VermelhoAtraso.copy(alpha = 0.1f)),
                     shape = RoundedCornerShape(12.dp)
@@ -156,6 +221,7 @@ fun MainAppNavigation() {
                             Text("Ciclo encerrado manualmente.", color = Color(0xFF2E7D32), fontWeight = FontWeight.SemiBold)
                         }
                     }
+                }
                 }
             } else {
                 OutlinedTextField(
@@ -255,5 +321,49 @@ fun MainAppNavigation() {
                 TextButton(onClick = { showDialogCriar = false }) { Text("Cancelar") }
             }
         )
+    }
+}
+
+
+@Composable
+private fun StatusResumoCard(
+    titulo: String,
+    quantidade: Int,
+    icone: androidx.compose.ui.graphics.vector.ImageVector,
+    cor: Color,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.height(132.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(14.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Icon(
+                imageVector = icone,
+                contentDescription = null,
+                tint = cor,
+                modifier = Modifier.size(30.dp)
+            )
+            Text(
+                text = quantidade.toString(),
+                color = AzulMarinho,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = titulo,
+                color = cor,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 0.35.sp
+            )
+        }
     }
 }
