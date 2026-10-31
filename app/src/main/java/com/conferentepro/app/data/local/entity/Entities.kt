@@ -1,6 +1,8 @@
 package com.conferentepro.app.data.local.entity
 
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.conferentepro.app.domain.model.*
 
@@ -31,4 +33,35 @@ data class HistoricoTimelineEntity(
     val responsavelAcao: String,
     val descricao: String,
     val respostaOuRetorno: String? = null
+)
+
+@Entity(tableName = "produtos")
+data class ProdutoEntity(
+    @PrimaryKey val ean: String,
+    val nome: String,
+    val sku: String = "",
+    val descricao: String = "",
+    val dataCadastro: Long = System.currentTimeMillis(),
+    val ultimaAtualizacao: Long = System.currentTimeMillis()
+)
+
+@Entity(
+    tableName = "ocorrencias_produto",
+    foreignKeys = [ForeignKey(entity = ProdutoEntity::class, parentColumns = ["ean"], childColumns = ["produtoEan"], onDelete = ForeignKey.CASCADE)],
+    indices = [Index("produtoEan"), Index("dataRegistro")]
+)
+data class OcorrenciaProdutoEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val produtoEan: String,
+    val tipo: String,
+    val destino: String,
+    val quantidade: Double = 1.0,
+    val unidade: String = "unidade(s)",
+    val lote: String = "",
+    val validade: Long? = null,
+    val protocolo: String = "",
+    val observacoes: String = "",
+    val status: String = "PENDENTE",
+    val dataRegistro: Long = System.currentTimeMillis(),
+    val dataResolucao: Long? = null
 )
