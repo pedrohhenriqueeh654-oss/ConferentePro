@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -77,5 +78,12 @@ private fun ConferenteSplash() {
             Spacer(modifier = Modifier.height(12.dp))
             Text("Organização e controle operacional", color = Color.White.copy(alpha = 0.78f), fontSize = 12.sp)
         }
+        Text(
+            "Desenvolvido por @eanpdro e GPT",
+            color = Color.White.copy(alpha = 0.72f),
+            fontSize = 11.sp,
+            letterSpacing = 0.3.sp,
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 28.dp)
+        )
     }
 }
