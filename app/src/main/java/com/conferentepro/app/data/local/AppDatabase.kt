@@ -1,3 +1,4 @@
+
 package com.conferentepro.app.data.local
 
 import android.content.Context
@@ -26,16 +27,30 @@ interface HistoricoDao {
     suspend fun insertHistorico(item: HistoricoTimelineEntity): Long
 }
 
-@Database(entities = [DemandaEntity::class, HistoricoTimelineEntity::class], version = 1, exportSchema = false)\n@TypeConverters(Converters::class)
+@Database(
+    entities = [DemandaEntity::class, HistoricoTimelineEntity::class],
+    version = 1,
+    exportSchema = false
+)
+@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun demandaDao(): DemandaDao
     abstract fun historicoDao(): HistoricoDao
 
     companion object {
-        @Volatile private var instance: AppDatabase? = null
-        fun getInstance(ctx: Context): AppDatabase = instance ?: synchronized(this) {
-            instance ?: Room.databaseBuilder(ctx.applicationContext, AppDatabase::class.java, "conferente_pro.db")
-                .fallbackToDestructiveMigration().build().also { instance = it }
-        }
+        @Volatile
+        private var instance: AppDatabase? = null
+
+        fun getInstance(ctx: Context): AppDatabase =
+            instance ?: synchronized(this) {
+                instance ?: Room.databaseBuilder(
+                    ctx.applicationContext,
+                    AppDatabase::class.java,
+                    "conferente_pro.db"
+                )
+                    .fallbackToDestructiveMigration()
+                    .build()
+                    .also { instance = it }
+            }
     }
 }
