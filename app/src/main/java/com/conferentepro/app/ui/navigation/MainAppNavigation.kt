@@ -86,8 +86,14 @@ fun MainAppNavigation() {
                 NavigationBarItem(
                     selected = telaSelecionada == 2,
                     onClick = { telaSelecionada = 2 },
-                    icon = { Icon(Icons.Default.AutoAwesome, contentDescription = "Assistente", tint = if (telaSelecionada == 2) LaranjaUltra else Color.LightGray) },
-                    label = { Text("Assistente", color = if (telaSelecionada == 2) LaranjaUltra else Color.LightGray) }
+                    icon = { Icon(Icons.Default.QrCodeScanner, contentDescription = "Leitor EAN", tint = if (telaSelecionada == 2) LaranjaUltra else Color.LightGray) },
+                    label = { Text("Leitor EAN", color = if (telaSelecionada == 2) LaranjaUltra else Color.LightGray) }
+                )
+                NavigationBarItem(
+                    selected = telaSelecionada == 3,
+                    onClick = { telaSelecionada = 3 },
+                    icon = { Icon(Icons.Default.AutoAwesome, contentDescription = "Assistente", tint = if (telaSelecionada == 3) LaranjaUltra else Color.LightGray) },
+                    label = { Text("Assistente", color = if (telaSelecionada == 3) LaranjaUltra else Color.LightGray) }
                 )
             }
         },
@@ -258,6 +264,8 @@ fun MainAppNavigation() {
                         }
                     }
                 }
+            } else if (telaSelecionada == 2) {
+                LeitorEanScreen()
             } else {
                 AssistenteOperacionalScreen(demandas = demandas)
             }
