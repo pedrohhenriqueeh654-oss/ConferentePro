@@ -463,7 +463,7 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
             } else if (telaSelecionada == 2) {
                 LeitorEanScreen()
             } else if (telaSelecionada == 3) {
-                AssistenteOperacionalScreen(demandas = demandas)
+                AssistenteOperacionalScreen(demandas = demandas, remanejos = remanejos, ocorrencias = ocorrenciasAbertas, cobrancas = cobrancas)
             } else if (telaSelecionada == 5) {
                 CentralCobrancasScreen(db = db, demandas = demandas)
             } else {
