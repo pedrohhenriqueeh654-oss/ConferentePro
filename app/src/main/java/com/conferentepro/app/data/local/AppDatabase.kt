@@ -57,6 +57,8 @@ interface RemanejoDao {
     fun getTodos(): Flow<List<RemanejoEntity>>
     @Insert
     suspend fun inserir(item: RemanejoEntity): Long
+    @Query("UPDATE remanejos SET assinaturaBase64 = :assinatura WHERE id = :id")
+    suspend fun atualizarAssinatura(id: Long, assinatura: String)
 }
 
 @Database(
