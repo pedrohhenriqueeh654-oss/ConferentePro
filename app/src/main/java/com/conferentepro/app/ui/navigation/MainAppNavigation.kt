@@ -265,7 +265,7 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                             Text("Consulte avarias, produtos vencidos e próximos do vencimento.", color = Color.Gray, fontSize = 12.sp)
                             Spacer(Modifier.height(8.dp))
                             Button(
-                                onClick = { telaSelecionada = 5 },
+                                onClick = { telaSelecionada = 8 },
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = ButtonDefaults.buttonColors(containerColor = LaranjaUltra)
                             ) {
