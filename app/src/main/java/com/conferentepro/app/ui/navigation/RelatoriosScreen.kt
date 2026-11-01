@@ -47,8 +47,7 @@ fun RelatoriosScreen(db: AppDatabase) {
     val formato = remember { SimpleDateFormat("dd/MM/yyyy", Locale("pt", "BR")) }
 
     Column(Modifier.fillMaxSize()) {
-        Text("CONTROLE DE PRODUTOS", color = AzulMarinho, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-        Text("Indicadores calculados automaticamente a partir das fichas de produto.", color = Color.Gray, fontSize = 12.sp)
+        CabecalhoTela("Controle de produtos", "Indicadores de avarias, vencimentos e condições dos itens", "RELATÓRIOS")
         Spacer(Modifier.height(14.dp))
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -62,7 +61,7 @@ fun RelatoriosScreen(db: AppDatabase) {
                 }
             }
             item {
-                Text("DETALHAMENTO DE AVARIAS", color = AzulMarinho, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                TituloSecaoVisual("Detalhamento de avarias")
             }
             if (avarias.isEmpty()) {
                 item { Text("Nenhuma avaria registrada.", color = Color.Gray, fontSize = 13.sp) }
@@ -90,7 +89,7 @@ fun RelatoriosScreen(db: AppDatabase) {
                 }
             }
             item {
-                Text("DETALHAMENTO DE VALIDADES", color = AzulMarinho, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                TituloSecaoVisual("Detalhamento de validades")
             }
             if (vencidosEProximos.isEmpty()) {
                 item { Text("Nenhum produto vencido ou próximo do vencimento foi encontrado nas ocorrências registradas.", color = Color.Gray, fontSize = 13.sp) }
@@ -105,7 +104,7 @@ fun RelatoriosScreen(db: AppDatabase) {
                 }
             }
             item {
-                Text("RESUMO DOS REGISTROS", color = AzulMarinho, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                TituloSecaoVisual("Resumo dos registros")
                 Text("Avarias: ${avarias.size} ocorrência(s), ${avarias.sumOf { it.quantidade }} unidade(s).", fontSize = 12.sp, color = Color.Gray)
                 Text("Vencimentos passados: ${vencidos.size} ocorrência(s), ${vencidos.sumOf { it.quantidade }} unidade(s).", fontSize = 12.sp, color = Color.Gray)
                 Text("Próximos 30 dias: ${proximos.size} ocorrência(s), ${proximos.sumOf { it.quantidade }} unidade(s).", fontSize = 12.sp, color = Color.Gray)
