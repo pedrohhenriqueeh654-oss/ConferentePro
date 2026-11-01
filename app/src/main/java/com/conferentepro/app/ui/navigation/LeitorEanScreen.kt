@@ -90,7 +90,10 @@ fun LeitorEanScreen() {
             singleLine = true, trailingIcon = { IconButton(onClick = { ean = "" }) { Icon(Icons.Default.Close, "Limpar") } }
         )
         Spacer(Modifier.height(8.dp))
-        if (temPermissao) {
+        // A câmera fica ativa somente enquanto aguardamos uma leitura.
+        // Ao capturar um EAN, removemos o Preview da composição e o DisposableEffect
+        // executa unbindAll(), encerrando a câmera e a análise.
+        if (temPermissao && ean.isBlank()) {
             CameraEanPreview(
                 modifier = Modifier.fillMaxWidth().height(190.dp),
                 lifecycleOwner = lifecycleOwner,
@@ -104,6 +107,27 @@ fun LeitorEanScreen() {
                     Text("Permita o acesso à câmera")
                     Button(onClick = { pedirPermissao.launch(Manifest.permission.CAMERA) }) { Text("Ativar câmera") }
                 }
+            }
+        }
+        if (ean.isNotBlank()) {
+            OutlinedButton(
+                onClick = {
+                    ean = ""
+                    erro = null
+                    tipo = "AVARIA"
+                    destino = "CD"
+                    quantidade = "1"
+                    unidade = "unidade(s)"
+                    lote = ""
+                    validade = ""
+                    protocolo = ""
+                    observacoes = ""
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Default.QrCodeScanner, null)
+                Spacer(Modifier.width(8.dp))
+                Text("Ler próximo EAN")
             }
         }
         Spacer(Modifier.height(8.dp))
