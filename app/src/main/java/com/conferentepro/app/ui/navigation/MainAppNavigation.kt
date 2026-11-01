@@ -125,9 +125,64 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .verticalScroll(rememberScrollState())
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    Spacer(modifier = Modifier.height(12.dp))
+                    val saudacao = when (java.time.LocalTime.now().hour) {
+                        in 5..11 -> "Bom dia"
+                        in 12..17 -> "Boa tarde"
+                        else -> "Boa noite"
+                    }
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(22.dp),
+                        colors = CardDefaults.cardColors(containerColor = AzulMarinho),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(18.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(saudacao + "!", color = Color.White.copy(alpha = 0.78f), fontSize = 13.sp)
+                                Text("Visão geral da operação", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                                Text(hoje.format(DateTimeFormatter.ofPattern("EEEE, dd 'de' MMMM", java.util.Locale("pt", "BR"))),
+                                    color = Color.White.copy(alpha = 0.75f), fontSize = 12.sp)
+                            }
+                            Surface(shape = RoundedCornerShape(16.dp), color = Color.White.copy(alpha = 0.12f)) {
+                                Icon(Icons.Default.Inventory2, contentDescription = null, tint = LaranjaUltra,
+                                    modifier = Modifier.padding(13.dp).size(30.dp))
+                            }
+                        }
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { telaSelecionada = 1 },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            contentPadding = PaddingValues(vertical = 10.dp)
+                        ) {
+                            Icon(Icons.Default.LocalShipping, contentDescription = null)
+                            Spacer(Modifier.width(6.dp))
+                            Text("Remanejos")
+                        }
+                        Button(
+                            onClick = { showDialogCriar = true },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = LaranjaUltra),
+                            contentPadding = PaddingValues(vertical = 10.dp)
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = null)
+                            Spacer(Modifier.width(6.dp))
+                            Text("Nova demanda")
+                        }
+                    }
+                    Text("CICLO DO CD", color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
@@ -239,7 +294,8 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(18.dp))
+                    Text("DEMANDAS OPERACIONAIS", color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -279,7 +335,8 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                             modifier = Modifier.weight(1f)
                         )
                     }
-                    Spacer(modifier = Modifier.height(18.dp))
+                    Text("ACOMPANHAMENTO", color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(14.dp),
@@ -316,11 +373,12 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                             }
                         }
                     }
-                    Spacer(Modifier.height(12.dp))
+                    Text("PRODUTOS", color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(14.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White)
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) {
                         Column(Modifier.padding(16.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -347,7 +405,10 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                     val ocorrenciasPendentes = ocorrenciasAbertas.filter { it.status.equals("PENDENTE", true) }
                     val cobrancasPendentes = cobrancas.filter { !it.status.equals("RESOLVIDA", true) && !it.status.equals("CONCLUIDA", true) }
                     Spacer(Modifier.height(12.dp))
-                    Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+                    Text("ATENÇÃO NECESSÁRIA", color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text("PAINEL DE PENDÊNCIAS", color = AzulMarinho, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
