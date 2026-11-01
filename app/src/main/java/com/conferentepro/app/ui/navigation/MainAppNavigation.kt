@@ -130,45 +130,109 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
                             containerColor = when {
-                                cicloCd.closed -> Color(0xFFE8F5E9)
-                                cicloCd.overdue -> Color(0xFFFFEBEE)
-                                else -> Color(0xFFFFFFFF)
+                                cicloCd.closed -> Color(0xFFEAF6EE)
+                                cicloCd.overdue -> Color(0xFFFFF0EF)
+                                else -> Color(0xFFEAF3F4)
                             }
                         ),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(18.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
                     ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    Icons.Default.LocalShipping,
-                                    contentDescription = null,
-                                    tint = if (cicloCd.overdue && !cicloCd.closed) VermelhoAtraso else AzulMarinho
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(cicloCd.title, fontWeight = FontWeight.Bold, color = AzulMarinho)
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(cicloCd.description, fontSize = 14.sp, color = AzulMarinho)
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                "Ciclo referente a ${cicloCd.month.format(DateTimeFormatter.ofPattern("MMMM/yyyy"))}",
-                                fontSize = 12.sp,
-                                color = Color.Gray
-                            )
-                            if (!cicloCd.closed) {
-                                Spacer(modifier = Modifier.height(12.dp))
-                                Button(
-                                    onClick = { showDialogFecharCd = true },
-                                    colors = ButtonDefaults.buttonColors(containerColor = LaranjaUltra),
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Icon(Icons.Default.Check, contentDescription = null)
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        Icons.Default.LocalShipping,
+                                        contentDescription = null,
+                                        tint = when {
+                                            cicloCd.closed -> Color(0xFF2E7D32)
+                                            cicloCd.overdue -> VermelhoAtraso
+                                            else -> AzulMarinho
+                                        }
+                                    )
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text("Marcar envio como concluído")
+                                    Text(cicloCd.title, fontWeight = FontWeight.Bold, color = AzulMarinho, fontSize = 15.sp)
                                 }
-                            } else {
                                 Spacer(modifier = Modifier.height(8.dp))
-                                Text("Ciclo encerrado manualmente.", color = Color(0xFF2E7D32), fontWeight = FontWeight.SemiBold)
+                                Text(cicloCd.description, fontSize = 12.sp, color = AzulMarinho)
+                                Spacer(modifier = Modifier.height(5.dp))
+                                Text(
+                                    "Referência: produtos vencidos em ${cicloCd.month.format(DateTimeFormatter.ofPattern("MM/yyyy"))}",
+                                    fontSize = 11.sp,
+                                    color = Color.DarkGray
+                                )
+                                Text(
+                                    "Data limite: 15/${cicloCd.deadline.format(DateTimeFormatter.ofPattern("MM/yyyy"))}",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Color.DarkGray
+                                )
+                                if (!cicloCd.closed) {
+                                    Spacer(modifier = Modifier.height(10.dp))
+                                    Button(
+                                        onClick = { showDialogFecharCd = true },
+                                        colors = ButtonDefaults.buttonColors(containerColor = LaranjaUltra),
+                                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
+                                    ) {
+                                        Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp))
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text("Marcar envio concluído", fontSize = 12.sp)
+                                    }
+                                } else {
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text("✓ Envio concluído", color = Color(0xFF2E7D32), fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Surface(
+                                shape = RoundedCornerShape(14.dp),
+                                color = when {
+                                    cicloCd.closed -> Color(0xFFD7EEDC)
+                                    cicloCd.overdue -> Color(0xFFFFDAD6)
+                                    cicloCd.daysRemaining <= 3 -> Color(0xFFFFE8C2)
+                                    else -> Color(0xFFD6E9EB)
+                                }
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 14.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        when {
+                                            cicloCd.closed -> "OK"
+                                            cicloCd.overdue -> "ATRASO"
+                                            else -> "FALTAM"
+                                        },
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = when {
+                                            cicloCd.closed -> Color(0xFF2E7D32)
+                                            cicloCd.overdue -> VermelhoAtraso
+                                            cicloCd.daysRemaining <= 3 -> Color(0xFF9A5B00)
+                                            else -> AzulMarinho
+                                        }
+                                    )
+                                    Text(
+                                        if (cicloCd.closed) "✓" else if (cicloCd.overdue) "+${java.time.temporal.ChronoUnit.DAYS.between(cicloCd.deadline, hoje)}" else cicloCd.daysRemaining.toString(),
+                                        fontSize = 27.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = when {
+                                            cicloCd.closed -> Color(0xFF2E7D32)
+                                            cicloCd.overdue -> VermelhoAtraso
+                                            cicloCd.daysRemaining <= 3 -> Color(0xFF9A5B00)
+                                            else -> AzulMarinho
+                                        }
+                                    )
+                                    Text(
+                                        if (cicloCd.overdue) "dias" else if (cicloCd.closed) "ENVIADO" else "DIAS",
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.DarkGray
+                                    )
+                                }
                             }
                         }
                     }
