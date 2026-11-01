@@ -78,14 +78,11 @@ fun MainAppNavigation() {
                     icon = { Icon(Icons.Default.LocalShipping, contentDescription = "Remanejos", tint = if (telaSelecionada == 1) LaranjaUltra else Color.LightGray) },
                     label = { Text("Remanejos", color = if (telaSelecionada == 1) LaranjaUltra else Color.LightGray) })
                 NavigationBarItem(selected = telaSelecionada == 2, onClick = { telaSelecionada = 2 },
-                    icon = { Icon(Icons.Default.Checklist, contentDescription = "Demandas", tint = if (telaSelecionada == 2) LaranjaUltra else Color.LightGray) },
-                    label = { Text("Demandas", color = if (telaSelecionada == 2) LaranjaUltra else Color.LightGray) })
+                    icon = { Icon(Icons.Default.QrCodeScanner, contentDescription = "Leitor EAN", tint = if (telaSelecionada == 2) LaranjaUltra else Color.LightGray) },
+                    label = { Text("Leitor EAN", color = if (telaSelecionada == 2) LaranjaUltra else Color.LightGray) })
                 NavigationBarItem(selected = telaSelecionada == 3, onClick = { telaSelecionada = 3 },
-                    icon = { Icon(Icons.Default.QrCodeScanner, contentDescription = "Leitor EAN", tint = if (telaSelecionada == 3) LaranjaUltra else Color.LightGray) },
-                    label = { Text("Leitor EAN", color = if (telaSelecionada == 3) LaranjaUltra else Color.LightGray) })
-                NavigationBarItem(selected = telaSelecionada == 4, onClick = { telaSelecionada = 4 },
-                    icon = { Icon(Icons.Default.AutoAwesome, contentDescription = "Assistente", tint = if (telaSelecionada == 4) LaranjaUltra else Color.LightGray) },
-                    label = { Text("Assistente", color = if (telaSelecionada == 4) LaranjaUltra else Color.LightGray) })
+                    icon = { Icon(Icons.Default.AutoAwesome, contentDescription = "Assistente", tint = if (telaSelecionada == 3) LaranjaUltra else Color.LightGray) },
+                    label = { Text("Assistente", color = if (telaSelecionada == 3) LaranjaUltra else Color.LightGray) })
             }
         },
     ) { padding ->
@@ -178,7 +175,7 @@ fun MainAppNavigation() {
                             )
                             Spacer(Modifier.height(12.dp))
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                OutlinedButton(onClick = { telaSelecionada = 2 }, modifier = Modifier.weight(1f)) {
+                                OutlinedButton(onClick = { telaSelecionada = 7 }, modifier = Modifier.weight(1f)) {
                                     Icon(Icons.Default.FormatListBulleted, contentDescription = null)
                                     Spacer(Modifier.width(6.dp))
                                     Text("Ver demandas")
@@ -271,7 +268,7 @@ fun MainAppNavigation() {
                 }
             } else if (telaSelecionada == 1) {
                 RemanejosScreen(db = db)
-            } else if (telaSelecionada == 2) {
+            } else if (telaSelecionada == 7) {
                 OutlinedTextField(
                     value = filtroDemandas,
                     onValueChange = { filtroDemandas = it },
