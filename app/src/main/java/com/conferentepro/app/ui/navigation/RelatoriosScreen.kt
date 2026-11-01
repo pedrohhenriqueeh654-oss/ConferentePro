@@ -41,7 +41,7 @@ fun RelatoriosScreen(db: AppDatabase) {
             it.destino.equals("VENCIDO", ignoreCase = true) ||
             (it.validade != null && it.validade < inicioHoje)
     }
-    val proximos = ocorrencias.filter { it.validade != null && it.validade >= inicioHoje && it.validade <= limite30Dias }
+    val proximos = ocorrencias.filter { it !in vencidos && it.validade != null && it.validade >= inicioHoje && it.validade <= limite30Dias }
         .sortedBy { it.validade }
     val vencidosEProximos = vencidos + proximos
     val formato = remember { SimpleDateFormat("dd/MM/yyyy", Locale("pt", "BR")) }
