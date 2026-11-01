@@ -155,32 +155,6 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                             }
                         }
                     }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        OutlinedButton(
-                            onClick = { telaSelecionada = 1 },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp),
-                            contentPadding = PaddingValues(vertical = 10.dp)
-                        ) {
-                            Icon(Icons.Default.LocalShipping, contentDescription = null)
-                            Spacer(Modifier.width(6.dp))
-                            Text("Remanejos")
-                        }
-                        Button(
-                            onClick = { showDialogCriar = true },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = LaranjaUltra),
-                            contentPadding = PaddingValues(vertical = 10.dp)
-                        ) {
-                            Icon(Icons.Default.Add, contentDescription = null)
-                            Spacer(Modifier.width(6.dp))
-                            Text("Nova demanda")
-                        }
-                    }
                     Text("CICLO DO CD", color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                     Card(
