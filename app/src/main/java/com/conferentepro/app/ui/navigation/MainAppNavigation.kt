@@ -101,6 +101,12 @@ fun MainAppNavigation() {
                     icon = { Icon(Icons.Default.NotificationsActive, contentDescription = "Central", tint = if (telaSelecionada == 4) LaranjaUltra else Color.LightGray) },
                     label = { Text("Central", color = if (telaSelecionada == 4) LaranjaUltra else Color.LightGray) }
                 )
+                NavigationBarItem(
+                    selected = telaSelecionada == 5,
+                    onClick = { telaSelecionada = 5 },
+                    icon = { Icon(Icons.Default.Assessment, contentDescription = "Relatórios", tint = if (telaSelecionada == 5) LaranjaUltra else Color.LightGray) },
+                    label = { Text("Relatórios", color = if (telaSelecionada == 5) LaranjaUltra else Color.LightGray) }
+                )
             }
         },
         floatingActionButton = {
@@ -274,8 +280,10 @@ fun MainAppNavigation() {
                 LeitorEanScreen()
             } else if (telaSelecionada == 3) {
                 AssistenteOperacionalScreen(demandas = demandas)
-            } else {
+            } else if (telaSelecionada == 4) {
                 CentralCobrancasScreen(db = db, demandas = demandas)
+            } else {
+                RelatoriosScreen(db = db)
             }
         }
     }
