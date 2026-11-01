@@ -65,8 +65,8 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
             TopAppBar(
                 title = {
                     Column(verticalArrangement = Arrangement.Center) {
-                        Text("CONFERENTE PRO", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 18.sp)
-                        Text("Desenvolvido por @eanpdro e GPT", color = Color.White.copy(alpha = 0.72f), fontSize = 10.sp, letterSpacing = 0.25.sp)
+                        Text("CONFERENTE PRO", fontWeight = FontWeight.ExtraBold, color = Color.White, fontSize = 18.sp, letterSpacing = 0.7.sp)
+                        Text("GESTÃO OPERACIONAL • OFFLINE", color = Color.White.copy(alpha = 0.72f), fontSize = 9.sp, fontWeight = FontWeight.Medium, letterSpacing = 0.8.sp)
                     }
                 },
                 actions = {
@@ -82,19 +82,19 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
             )
         },
         bottomBar = {
-            NavigationBar(containerColor = AzulMarinho) {
+            NavigationBar(containerColor = AzulMarinho, tonalElevation = 8.dp) {
                 NavigationBarItem(selected = telaSelecionada == 0, onClick = { telaSelecionada = 0 },
                     icon = { Icon(Icons.Default.Dashboard, contentDescription = "Início", tint = if (telaSelecionada == 0) LaranjaUltra else Color.LightGray) },
-                    label = { Text("Início", color = if (telaSelecionada == 0) LaranjaUltra else Color.LightGray) })
+                    label = { Text("Início", fontWeight = if (telaSelecionada == 0) FontWeight.Bold else FontWeight.Normal) })
                 NavigationBarItem(selected = telaSelecionada == 1, onClick = { telaSelecionada = 1 },
                     icon = { Icon(Icons.Default.LocalShipping, contentDescription = "Remanejos", tint = if (telaSelecionada == 1) LaranjaUltra else Color.LightGray) },
-                    label = { Text("Remanejos", color = if (telaSelecionada == 1) LaranjaUltra else Color.LightGray) })
+                    label = { Text("Remanejos", fontWeight = if (telaSelecionada == 1) FontWeight.Bold else FontWeight.Normal) })
                 NavigationBarItem(selected = telaSelecionada == 2, onClick = { telaSelecionada = 2 },
                     icon = { Icon(Icons.Default.QrCodeScanner, contentDescription = "Leitor EAN", tint = if (telaSelecionada == 2) LaranjaUltra else Color.LightGray) },
-                    label = { Text("Leitor EAN", color = if (telaSelecionada == 2) LaranjaUltra else Color.LightGray) })
+                    label = { Text("Leitor EAN", fontWeight = if (telaSelecionada == 2) FontWeight.Bold else FontWeight.Normal) })
                 NavigationBarItem(selected = telaSelecionada == 3, onClick = { telaSelecionada = 3 },
                     icon = { Icon(Icons.Default.AutoAwesome, contentDescription = "Assistente", tint = if (telaSelecionada == 3) LaranjaUltra else Color.LightGray) },
-                    label = { Text("Assistente", color = if (telaSelecionada == 3) LaranjaUltra else Color.LightGray) })
+                    label = { Text("Assistente", fontWeight = if (telaSelecionada == 3) FontWeight.Bold else FontWeight.Normal) })
             }
         },
     ) { padding ->
