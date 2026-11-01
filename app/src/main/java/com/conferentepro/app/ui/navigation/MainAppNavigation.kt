@@ -149,7 +149,7 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                                 Text(hoje.format(DateTimeFormatter.ofPattern("EEEE, dd 'de' MMMM", java.util.Locale("pt", "BR"))),
                                     color = Color.White.copy(alpha = 0.75f), fontSize = 12.sp)
                             }
-                            Surface(shape = RoundedCornerShape(16.dp), color = Color.White.copy(alpha = 0.12f)) {
+                            Surface(shape = RoundedCornerShape(20.dp), color = Color.White.copy(alpha = 0.12f)) {
                                 Icon(Icons.Default.Inventory2, contentDescription = null, tint = LaranjaUltra,
                                     modifier = Modifier.padding(13.dp).size(30.dp))
                             }
@@ -166,7 +166,7 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                                 else -> Color(0xFFEAF3F4)
                             }
                         ),
-                        shape = RoundedCornerShape(18.dp),
+                        shape = RoundedCornerShape(22.dp),
                         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
                     ) {
                         Row(
@@ -219,7 +219,7 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                             }
                             Spacer(modifier = Modifier.width(10.dp))
                             Surface(
-                                shape = RoundedCornerShape(14.dp),
+                                shape = RoundedCornerShape(22.dp),
                                 color = when {
                                     cicloCd.closed -> Color(0xFFD7EEDC)
                                     cicloCd.overdue -> Color(0xFFFFDAD6)
@@ -313,7 +313,7 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                         fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(14.dp),
+                        shape = RoundedCornerShape(22.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
@@ -351,7 +351,7 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                         fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(14.dp),
+                        shape = RoundedCornerShape(22.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) {
                         Column(Modifier.padding(16.dp)) {
@@ -381,7 +381,7 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                     Spacer(Modifier.height(12.dp))
                     Text("ATENÇÃO NECESSÁRIA", color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp),
+                    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(22.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text("PAINEL DE PENDÊNCIAS", color = AzulMarinho, fontWeight = FontWeight.Bold, fontSize = 15.sp)
@@ -451,7 +451,7 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(demandasFiltradas.size) { i ->
                             val item = demandasFiltradas[i]
-                            Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                            Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                                 Column(modifier = Modifier.padding(14.dp)) {
                                     Text(item.titulo, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = AzulMarinho)
                                     Text("Categoria: ${item.categoria.label} | Prioridade: ${item.prioridade.label}", fontSize = 12.sp, color = Color.Gray)
@@ -587,8 +587,8 @@ private fun StatusResumoCard(
 ) {
     Card(
         modifier = modifier.height(132.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
