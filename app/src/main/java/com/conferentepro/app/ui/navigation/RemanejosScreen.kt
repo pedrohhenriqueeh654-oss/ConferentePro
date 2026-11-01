@@ -56,6 +56,7 @@ fun RemanejosScreen(db: AppDatabase) {
     var modoSelecao by remember { mutableStateOf(false) }
     val idsSelecionados = remember { mutableStateListOf<Long>() }
     var mostrarAssinaturaLote by remember { mutableStateOf(false) }
+    var mostrarAssinaturaIndividual by remember { mutableStateOf(false) }
 
     val filtrados = registros.filter { item ->
         val texto = busca.trim()
@@ -111,7 +112,8 @@ fun RemanejosScreen(db: AppDatabase) {
             selecionado != null -> RemanejoDetalhe(
                 item = selecionado!!,
                 onBack = { selecionado = null },
-                onShare = { compartilharComprovante(context, selecionado!!) }
+                onShare = { compartilharComprovante(context, selecionado!!) },
+                onSign = { mostrarAssinaturaIndividual = true }
             )
             else -> {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -190,6 +192,19 @@ fun RemanejosScreen(db: AppDatabase) {
                 }
             }
         }
+    }
+    if (mostrarAssinaturaIndividual && selecionado != null) {
+        AssinaturaIndividualDialog(
+            onDismiss = { mostrarAssinaturaIndividual = false },
+            onConfirm = { assinatura ->
+                scope.launch {
+                    val itemAtual = selecionado ?: return@launch
+                    db.remanejoDao().atualizarAssinatura(itemAtual.id, assinatura)
+                    selecionado = itemAtual.copy(assinaturaBase64 = assinatura)
+                    mostrarAssinaturaIndividual = false
+                }
+            }
+        )
     }
     if (mostrarAssinaturaLote) {
         AssinaturaLoteDialog(quantidade = idsSelecionados.size, onDismiss = { mostrarAssinaturaLote = false }, onConfirm = { assinatura ->
@@ -322,7 +337,59 @@ private fun RemanejoForm(
 }
 
 @Composable
-private fun RemanejoDetalhe(item: RemanejoEntity, onBack: () -> Unit, onShare: () -> Unit) {
+private fun AssinaturaIndividualDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
+    val pontos = remember { mutableStateListOf<Offset>() }
+    var largura by remember { mutableFloatStateOf(1f) }
+    var altura by remember { mutableFloatStateOf(1f) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Assinar remanejo") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Desenhe sua assinatura para este comprovante.")
+                Canvas(
+                    Modifier.fillMaxWidth().height(130.dp)
+                        .background(Color.White, RoundedCornerShape(10.dp))
+                        .pointerInput(Unit) {
+                            detectDragGestures(
+                                onDragStart = { p -> pontos.add(p); largura = size.width.toFloat(); altura = size.height.toFloat() },
+                                onDrag = { change, _ -> pontos.add(change.position); change.consume() }
+                            )
+                        }
+                        .pointerInput(Unit) {
+                            detectTapGestures { p -> pontos.add(p); largura = size.width.toFloat(); altura = size.height.toFloat() }
+                        }
+                ) {
+                    drawLine(Color.LightGray, Offset(8f, size.height - 14f), Offset(size.width - 8f, size.height - 14f), 1.dp.toPx())
+                    if (pontos.size > 1) {
+                        val path = Path().apply {
+                            moveTo(pontos.first().x, pontos.first().y)
+                            pontos.drop(1).forEach { lineTo(it.x, it.y) }
+                        }
+                        drawPath(path, RemanejoNavy, style = Stroke(width = 2.8.dp.toPx()))
+                    }
+                }
+                TextButton(onClick = { pontos.clear() }) { Text("Limpar assinatura") }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onConfirm(criarAssinaturaBase64(pontos.toList(), largura, altura)) },
+                enabled = pontos.size >= 2,
+                colors = ButtonDefaults.buttonColors(containerColor = RemanejoAccent)
+            ) { Text("Salvar assinatura") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } }
+    )
+}
+
+@Composable
+private fun RemanejoDetalhe(
+    item: RemanejoEntity,
+    onBack: () -> Unit,
+    onShare: () -> Unit,
+    onSign: () -> Unit
+) {
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text("COMPROVANTE", color = RemanejoNavy, fontWeight = FontWeight.Bold)
@@ -363,6 +430,16 @@ private fun RemanejoDetalhe(item: RemanejoEntity, onBack: () -> Unit, onShare: (
             }
         }
         Spacer(Modifier.height(10.dp))
+        if (item.assinaturaBase64.isBlank()) {
+            Button(
+                onClick = onSign,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = RemanejoAccent)
+            ) {
+                Text("Adicionar assinatura")
+            }
+            Spacer(Modifier.height(8.dp))
+        }
         Button(onClick = onShare, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = RemanejoAccent)) {
             Text("Compartilhar comprovante em PDF")
         }
