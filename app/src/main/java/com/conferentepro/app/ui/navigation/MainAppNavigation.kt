@@ -1,6 +1,7 @@
 package com.conferentepro.app.ui.navigation
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
@@ -9,6 +10,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +44,7 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
     val scope = rememberCoroutineScope()
     var telaSelecionada by remember { mutableStateOf(0) }
     var showDialogCriar by remember { mutableStateOf(false) }
+    var mostrarInformacoesApp by remember { mutableStateOf(false) }
     var showDialogFecharCd by remember { mutableStateOf(false) }
     var novoTitulo by remember { mutableStateOf("") }
     var prazoIndeterminado by remember { mutableStateOf(false) }
@@ -74,6 +78,13 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                         Icon(
                             imageVector = if (isDarkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
                             contentDescription = if (isDarkTheme) "Ativar tema claro" else "Ativar tema escuro",
+                            tint = Color.White
+                        )
+                    }
+                    IconButton(onClick = { mostrarInformacoesApp = true }) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = "Informações do aplicativo",
                             tint = Color.White
                         )
                     }
@@ -473,6 +484,71 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
     }
 
 
+    if (mostrarInformacoesApp) {
+        val packageInfo = remember(ctx) {
+            if (android.os.Build.VERSION.SDK_INT >= 33) {
+                ctx.packageManager.getPackageInfo(ctx.packageName, android.content.pm.PackageManager.PackageInfoFlags.of(0))
+            } else {
+                @Suppress("DEPRECATION")
+                ctx.packageManager.getPackageInfo(ctx.packageName, 0)
+            }
+        }
+        Dialog(
+            onDismissRequest = { mostrarInformacoesApp = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.42f))
+                    .clickable { mostrarInformacoesApp = false }
+            ) {
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .fillMaxHeight()
+                        .width(310.dp)
+                        .clickable(enabled = true) { },
+                    color = MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(topStart = 22.dp, bottomStart = 22.dp),
+                    shadowElevation = 12.dp
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxSize().padding(22.dp),
+                        verticalArrangement = Arrangement.spacedBy(15.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("Sobre o aplicativo", fontSize = 19.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                            IconButton(onClick = { mostrarInformacoesApp = false }) {
+                                Icon(Icons.Default.Close, contentDescription = "Fechar")
+                            }
+                        }
+                        HorizontalDivider()
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text("CONFERENTE PRO", color = AzulMarinho, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
+                            Text("Gestão operacional offline", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                        }
+                        InfoAppLinha("Versão", packageInfo.versionName ?: "Não informada")
+                        InfoAppLinha("Build", packageInfo.longVersionCode.toString())
+                        InfoAppLinha("Release", "v1.2.0 • CD mensal")
+                        InfoAppLinha("Pacote", ctx.packageName)
+                        InfoAppLinha("Android mínimo", "8.0 (API 26)")
+                        InfoAppLinha("Modo", "Offline • dados locais")
+                        Spacer(Modifier.weight(1f))
+                        HorizontalDivider()
+                        Text("Desenvolvido por", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                        Text("@eanpdro", color = LaranjaUltra, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        Text("Conferente Pro • Todos os direitos reservados", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
+                    }
+                }
+            }
+        }
+    }
+
     if (mostrarSeletorData) {
         DatePickerDialog(
             onDismissRequest = { mostrarSeletorData = false },
@@ -617,5 +693,14 @@ private fun StatusResumoCard(
                 letterSpacing = 0.35.sp
             )
         }
+    }
+}
+
+
+@Composable
+private fun InfoAppLinha(rotulo: String, valor: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+        Text(rotulo, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
+        Text(valor, color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
     }
 }
