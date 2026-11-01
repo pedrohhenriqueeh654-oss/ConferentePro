@@ -57,6 +57,7 @@ fun RemanejosScreen(db: AppDatabase) {
     val idsSelecionados = remember { mutableStateListOf<Long>() }
     var mostrarAssinaturaLote by remember { mutableStateOf(false) }
     var mostrarAssinaturaIndividual by remember { mutableStateOf(false) }
+    var remanejoDuplicado by remember { mutableStateOf<RemanejoEntity?>(null) }
 
     val filtrados = registros.filter { item ->
         val texto = busca.trim()
@@ -91,6 +92,13 @@ fun RemanejosScreen(db: AppDatabase) {
                 onCancel = { telaCadastro = false },
                 onSave = { numeros, origem, destino, pessoa, assinatura, observacoes ->
                     scope.launch {
+                        val duplicado = numeros.firstNotNullOfOrNull { numero ->
+                            db.remanejoDao().buscarPorNumeroNota(numero)
+                        }
+                        if (duplicado != null) {
+                            remanejoDuplicado = duplicado
+                            return@launch
+                        }
                         val dataRegistro = System.currentTimeMillis()
                         numeros.forEach { numero ->
                             db.remanejoDao().inserir(
@@ -192,6 +200,24 @@ fun RemanejosScreen(db: AppDatabase) {
                 }
             }
         }
+    }
+    if (remanejoDuplicado != null) {
+        val duplicado = remanejoDuplicado!!
+        AlertDialog(
+            onDismissRequest = { remanejoDuplicado = null },
+            title = { Text("Nota fiscal já cadastrada") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("A NF ${duplicado.numeroNota} já existe nos remanejos. O novo cadastro foi bloqueado para evitar duplicidade.")
+                    Text("Origem: ${duplicado.filialSaida}")
+                    Text("Destino: ${duplicado.filialDestino}")
+                    Text("Registrada em: ${formatarData(duplicado.dataRegistro)}")
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { remanejoDuplicado = null }) { Text("Entendi") }
+            }
+        )
     }
     if (mostrarAssinaturaIndividual && selecionado != null) {
         AssinaturaIndividualDialog(
