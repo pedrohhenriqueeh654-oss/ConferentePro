@@ -23,6 +23,8 @@ import java.util.concurrent.TimeUnit
 @Composable
 fun RelatoriosScreen(db: AppDatabase) {
     val ocorrencias by db.produtoDao().getTodasOcorrencias().collectAsState(initial = emptyList())
+    val produtos by db.produtoDao().getProdutos().collectAsState(initial = emptyList())
+    val nomesProdutos = remember(produtos) { produtos.associateBy { it.ean } }
     val inicioHoje = remember {
         val c = java.util.Calendar.getInstance()
         c.set(java.util.Calendar.HOUR_OF_DAY, 0)
@@ -33,7 +35,12 @@ fun RelatoriosScreen(db: AppDatabase) {
     }
     val limite30Dias = inicioHoje + TimeUnit.DAYS.toMillis(30)
     val avarias = ocorrencias.filter { it.tipo.equals("AVARIA", ignoreCase = true) }
-    val vencidos = ocorrencias.filter { it.validade != null && it.validade < inicioHoje }
+    // Um item marcado explicitamente como VENCIMENTO/VENCIDO deve aparecer mesmo sem data de validade preenchida.
+    val vencidos = ocorrencias.filter {
+        it.tipo.equals("VENCIMENTO", ignoreCase = true) ||
+            it.destino.equals("VENCIDO", ignoreCase = true) ||
+            (it.validade != null && it.validade < inicioHoje)
+    }
     val proximos = ocorrencias.filter { it.validade != null && it.validade >= inicioHoje && it.validade <= limite30Dias }
         .sortedBy { it.validade }
     val vencidosEProximos = vencidos + proximos
@@ -76,7 +83,12 @@ fun RelatoriosScreen(db: AppDatabase) {
                 item { Text("Nenhum produto vencido ou próximo do vencimento foi encontrado nas ocorrências registradas.", color = Color.Gray, fontSize = 13.sp) }
             } else {
                 items(vencidosEProximos, key = { it.id }) { item ->
-                    ValidadeRelatorioItem(item = item, vencido = item.validade!! < inicioHoje, dataFormatada = formato.format(Date(item.validade)))
+                    ValidadeRelatorioItem(
+                        item = item,
+                        vencido = item in vencidos,
+                        nomeProduto = nomesProdutos[item.produtoEan]?.nome ?: "Produto não identificado",
+                        dataFormatada = item.validade?.let { formato.format(Date(it)) } ?: "Não informada"
+                    )
                 }
             }
             item {
@@ -110,12 +122,14 @@ private fun RelatorioCard(
 }
 
 @Composable
-private fun ValidadeRelatorioItem(item: OcorrenciaProdutoEntity, vencido: Boolean, dataFormatada: String) {
+private fun ValidadeRelatorioItem(item: OcorrenciaProdutoEntity, vencido: Boolean, nomeProduto: String, dataFormatada: String) {
     Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Text(if (vencido) "VENCIDO" else "PRÓXIMO DO VENCIMENTO", color = if (vencido) Color(0xFFD32F2F) else Color(0xFF087E83), fontWeight = FontWeight.Bold, fontSize = 11.sp)
+            Text(nomeProduto, color = AzulMarinho, fontWeight = FontWeight.Bold, fontSize = 15.sp)
             Text("EAN: ${item.produtoEan}", color = AzulMarinho, fontWeight = FontWeight.SemiBold)
-            Text("Validade: $dataFormatada • ${item.quantidade} ${item.unidade}", fontSize = 12.sp)
+            Text("Validade: $dataFormatada • Quantidade: ${item.quantidade} ${item.unidade}", fontSize = 12.sp)
+            Text("Registrado em: ${SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("pt", "BR")).format(Date(item.dataRegistro))}", fontSize = 11.sp, color = Color.Gray)
             Text("Tipo: ${item.tipo} • Destino: ${item.destino}", color = Color.Gray, fontSize = 11.sp)
             if (item.lote.isNotBlank()) Text("Lote: ${item.lote}", color = Color.Gray, fontSize = 11.sp)
         }
