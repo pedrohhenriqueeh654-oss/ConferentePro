@@ -101,23 +101,8 @@ fun MainAppNavigation() {
                     icon = { Icon(Icons.Default.NotificationsActive, contentDescription = "Central", tint = if (telaSelecionada == 4) LaranjaUltra else Color.LightGray) },
                     label = { Text("Central", color = if (telaSelecionada == 4) LaranjaUltra else Color.LightGray) }
                 )
-                NavigationBarItem(
-                    selected = telaSelecionada == 5,
-                    onClick = { telaSelecionada = 5 },
-                    icon = { Icon(Icons.Default.Assessment, contentDescription = "Relatórios", tint = if (telaSelecionada == 5) LaranjaUltra else Color.LightGray) },
-                    label = { Text("Relatórios", color = if (telaSelecionada == 5) LaranjaUltra else Color.LightGray) }
-                )
             }
         },
-        floatingActionButton = {
-            FloatingActionButton(
-                containerColor = LaranjaUltra,
-                contentColor = Color.White,
-                onClick = { showDialogCriar = true }
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Nova Demanda")
-            }
-        }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -188,7 +173,69 @@ fun MainAppNavigation() {
                             modifier = Modifier.weight(1f)
                         )
                     }
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(18.dp))
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.Checklist, contentDescription = null, tint = AzulMarinho)
+                                Spacer(Modifier.width(8.dp))
+                                Text("DEMANDAS", color = AzulMarinho, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            }
+                            Spacer(Modifier.height(6.dp))
+                            Text(
+                                "${demandasAtivas.size} pendência(s) em aberto • ${totalAtrasadas} atrasada(s)",
+                                color = Color.Gray,
+                                fontSize = 12.sp
+                            )
+                            Spacer(Modifier.height(12.dp))
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                OutlinedButton(onClick = { telaSelecionada = 1 }, modifier = Modifier.weight(1f)) {
+                                    Icon(Icons.Default.FormatListBulleted, contentDescription = null)
+                                    Spacer(Modifier.width(6.dp))
+                                    Text("Ver demandas")
+                                }
+                                Button(
+                                    onClick = { showDialogCriar = true },
+                                    modifier = Modifier.weight(1f),
+                                    colors = ButtonDefaults.buttonColors(containerColor = LaranjaUltra)
+                                ) {
+                                    Icon(Icons.Default.Add, contentDescription = null)
+                                    Spacer(Modifier.width(6.dp))
+                                    Text("Adicionar")
+                                }
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White)
+                    ) {
+                        Column(Modifier.padding(16.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.Assessment, contentDescription = null, tint = AzulMarinho)
+                                Spacer(Modifier.width(8.dp))
+                                Text("PAINEL DE PRODUTIVIDADE", color = AzulMarinho, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            }
+                            Text("Avarias, vencidos e produtos próximos do vencimento.", color = Color.Gray, fontSize = 12.sp)
+                            Spacer(Modifier.height(8.dp))
+                            Button(
+                                onClick = { telaSelecionada = 5 },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.buttonColors(containerColor = LaranjaUltra)
+                            ) {
+                                Icon(Icons.Default.BarChart, contentDescription = null)
+                                Spacer(Modifier.width(8.dp))
+                                Text("Abrir relatórios")
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(12.dp))
                 Spacer(modifier = Modifier.height(12.dp))
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -280,10 +327,8 @@ fun MainAppNavigation() {
                 LeitorEanScreen()
             } else if (telaSelecionada == 3) {
                 AssistenteOperacionalScreen(demandas = demandas)
-            } else if (telaSelecionada == 4) {
-                CentralCobrancasScreen(db = db, demandas = demandas)
             } else {
-                RelatoriosScreen(db = db)
+                CentralCobrancasScreen(db = db, demandas = demandas)
             }
         }
     }
