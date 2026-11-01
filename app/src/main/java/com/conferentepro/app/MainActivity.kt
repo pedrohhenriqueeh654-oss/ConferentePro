@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -40,12 +41,25 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             var showSplash by remember { mutableStateOf(true) }
-            MaterialTheme(colorScheme = lightColorScheme(
+            val preferences = remember { getSharedPreferences("conferente_preferences", MODE_PRIVATE) }
+            var darkTheme by remember { mutableStateOf(preferences.getBoolean("dark_theme", false)) }
+            val lightColors = lightColorScheme(
                 primary = Teal,
                 secondary = Turquoise,
                 background = Color(0xFFF4F7F6),
-                surface = Color.White
-            )) {
+                surface = Color.White,
+                onBackground = Petrol,
+                onSurface = Petrol
+            )
+            val darkColors = darkColorScheme(
+                primary = Turquoise,
+                secondary = Color(0xFF70D6C6),
+                background = Color(0xFF101B1E),
+                surface = Color(0xFF1B2A2E),
+                onBackground = Color(0xFFE8F0EF),
+                onSurface = Color(0xFFE8F0EF)
+            )
+            MaterialTheme(colorScheme = if (darkTheme) darkColors else lightColors) {
                 LaunchedEffect(Unit) {
                     delay(1100)
                     showSplash = false
@@ -53,7 +67,13 @@ class MainActivity : ComponentActivity() {
                 if (showSplash) {
                     ConferenteSplash()
                 } else {
-                    com.conferentepro.app.ui.navigation.MainAppNavigation()
+                    com.conferentepro.app.ui.navigation.MainAppNavigation(
+                        isDarkTheme = darkTheme,
+                        onToggleTheme = {
+                            darkTheme = !darkTheme
+                            preferences.edit().putBoolean("dark_theme", darkTheme).apply()
+                        }
+                    )
                 }
             }
         }
