@@ -65,3 +65,17 @@ data class OcorrenciaProdutoEntity(
     val dataRegistro: Long = System.currentTimeMillis(),
     val dataResolucao: Long? = null
 )
+
+
+@Entity(tableName = "cobrancas", indices = [Index("proximaCobranca"), Index("dataContato")])
+data class CobrancaEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val destino: String,
+    val referencia: String,
+    val pessoaContatada: String,
+    val dataContato: Long = System.currentTimeMillis(),
+    val resposta: String = "",
+    val proximaCobranca: Long? = null,
+    val status: String = "PENDENTE",
+    val observacoes: String = ""
+)
