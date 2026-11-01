@@ -125,6 +125,55 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                         .weight(1f)
                         .verticalScroll(rememberScrollState())
                 ) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = when {
+                                cicloCd.closed -> Color(0xFFE8F5E9)
+                                cicloCd.overdue -> Color(0xFFFFEBEE)
+                                else -> Color(0xFFFFFFFF)
+                            }
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    Icons.Default.LocalShipping,
+                                    contentDescription = null,
+                                    tint = if (cicloCd.overdue && !cicloCd.closed) VermelhoAtraso else AzulMarinho
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(cicloCd.title, fontWeight = FontWeight.Bold, color = AzulMarinho)
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(cicloCd.description, fontSize = 14.sp, color = AzulMarinho)
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                "Ciclo referente a ${cicloCd.month.format(DateTimeFormatter.ofPattern("MMMM/yyyy"))}",
+                                fontSize = 12.sp,
+                                color = Color.Gray
+                            )
+                            if (!cicloCd.closed) {
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Button(
+                                    onClick = { showDialogFecharCd = true },
+                                    colors = ButtonDefaults.buttonColors(containerColor = LaranjaUltra),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Icon(Icons.Default.Check, contentDescription = null)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text("Marcar envio como concluído")
+                                }
+                            } else {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text("Ciclo encerrado manualmente.", color = Color(0xFF2E7D32), fontWeight = FontWeight.SemiBold)
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(18.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -227,53 +276,6 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                         }
                     }
                     Spacer(Modifier.height(12.dp))
-                Spacer(modifier = Modifier.height(12.dp))
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = when {
-                            cicloCd.closed -> Color(0xFFE8F5E9)
-                            cicloCd.overdue -> Color(0xFFFFEBEE)
-                            else -> Color(0xFFFFFFFF)
-                        }
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                Icons.Default.LocalShipping,
-                                contentDescription = null,
-                                tint = if (cicloCd.overdue && !cicloCd.closed) VermelhoAtraso else AzulMarinho
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(cicloCd.title, fontWeight = FontWeight.Bold, color = AzulMarinho)
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(cicloCd.description, fontSize = 14.sp, color = AzulMarinho)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            "Ciclo referente a ${cicloCd.month.format(DateTimeFormatter.ofPattern("MMMM/yyyy"))}",
-                            fontSize = 12.sp,
-                            color = Color.Gray
-                        )
-                        if (!cicloCd.closed) {
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Button(
-                                onClick = { showDialogFecharCd = true },
-                                colors = ButtonDefaults.buttonColors(containerColor = LaranjaUltra),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Icon(Icons.Default.Check, contentDescription = null)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("Marcar envio como concluído")
-                            }
-                        } else {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text("Ciclo encerrado manualmente.", color = Color(0xFF2E7D32), fontWeight = FontWeight.SemiBold)
-                        }
-                    }
-                }
                 }
             } else if (telaSelecionada == 1) {
                 RemanejosScreen(db = db)
