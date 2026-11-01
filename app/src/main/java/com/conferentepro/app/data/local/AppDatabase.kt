@@ -45,9 +45,19 @@ interface ProdutoDao {
     suspend fun inserirOcorrencia(ocorrencia: OcorrenciaProdutoEntity): Long
 }
 
+@Dao
+interface CobrancaDao {
+    @Query("SELECT * FROM cobrancas ORDER BY COALESCE(proximaCobranca, dataContato) ASC")
+    fun getTodas(): Flow<List<CobrancaEntity>>
+    @Insert
+    suspend fun inserir(item: CobrancaEntity): Long
+    @Query("UPDATE cobrancas SET status = 'RESOLVIDA', proximaCobranca = NULL WHERE id = :id")
+    suspend fun concluir(id: Long)
+}
+
 @Database(
-    entities = [DemandaEntity::class, HistoricoTimelineEntity::class, ProdutoEntity::class, OcorrenciaProdutoEntity::class],
-    version = 2,
+    entities = [DemandaEntity::class, HistoricoTimelineEntity::class, ProdutoEntity::class, OcorrenciaProdutoEntity::class, CobrancaEntity::class],
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -55,6 +65,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun demandaDao(): DemandaDao
     abstract fun historicoDao(): HistoricoDao
     abstract fun produtoDao(): ProdutoDao
+    abstract fun cobrancaDao(): CobrancaDao
 
     companion object {
         private val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -63,6 +74,14 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("CREATE TABLE IF NOT EXISTS ocorrencias_produto (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, produtoEan TEXT NOT NULL, tipo TEXT NOT NULL, destino TEXT NOT NULL, quantidade REAL NOT NULL, unidade TEXT NOT NULL, lote TEXT NOT NULL, validade INTEGER, protocolo TEXT NOT NULL, observacoes TEXT NOT NULL, status TEXT NOT NULL, dataRegistro INTEGER NOT NULL, dataResolucao INTEGER, FOREIGN KEY(produtoEan) REFERENCES produtos(ean) ON UPDATE NO ACTION ON DELETE CASCADE)")
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_ocorrencias_produto_produtoEan ON ocorrencias_produto(produtoEan)")
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_ocorrencias_produto_dataRegistro ON ocorrencias_produto(dataRegistro)")
+            }
+        }
+
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("CREATE TABLE IF NOT EXISTS cobrancas (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, destino TEXT NOT NULL, referencia TEXT NOT NULL, pessoaContatada TEXT NOT NULL, dataContato INTEGER NOT NULL, resposta TEXT NOT NULL, proximaCobranca INTEGER, status TEXT NOT NULL, observacoes TEXT NOT NULL)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_cobrancas_proximaCobranca ON cobrancas(proximaCobranca)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_cobrancas_dataContato ON cobrancas(dataContato)")
             }
         }
 
@@ -76,7 +95,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "conferente_pro.db"
                 )
-                    .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .build()
                     .also { instance = it }
             }
