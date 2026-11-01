@@ -34,7 +34,7 @@ fun AssistenteOperacionalScreen(demandas: List<DemandaEntity>) {
     Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = AzulMarinho)
         ) {
             Row(
@@ -54,7 +54,7 @@ fun AssistenteOperacionalScreen(demandas: List<DemandaEntity>) {
         val abertas = demandas.filter { !it.concluida && it.status != StatusDemanda.CONCLUIDA && it.status != StatusDemanda.CANCELADA }
         val atrasadas = abertas.filter { it.dataPrazoFinal != Long.MAX_VALUE && it.dataPrazoFinal < agora }
         val aguardando = abertas.filter { it.status == StatusDemanda.AGUARDANDO_CD || it.status == StatusDemanda.AGUARDANDO_FORNECEDOR || it.status == StatusDemanda.AGUARDANDO_TERCEIROS }
-        Card(colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
+        Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text("${abertas.size} demandas em aberto • ${atrasadas.size} atrasadas", color = AzulMarinho, fontWeight = FontWeight.SemiBold)
                 Text("${aguardando.size} aguardando CD, fornecedor ou terceiros", color = Color.DarkGray, fontSize = 13.sp)
@@ -74,7 +74,7 @@ fun AssistenteOperacionalScreen(demandas: List<DemandaEntity>) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = if (mensagem.doUsuario) Arrangement.End else Arrangement.Start) {
                     Surface(
                         color = if (mensagem.doUsuario) Color(0xFFDDF3EF) else Color.White,
-                        shape = RoundedCornerShape(14.dp),
+                        shape = RoundedCornerShape(22.dp),
                         modifier = Modifier.widthIn(max = 310.dp)
                     ) {
                         Text(mensagem.texto, modifier = Modifier.padding(12.dp), color = AzulMarinho, fontSize = 13.sp)
