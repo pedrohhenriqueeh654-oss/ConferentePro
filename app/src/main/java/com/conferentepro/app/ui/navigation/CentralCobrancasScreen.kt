@@ -70,7 +70,7 @@ fun CentralCobrancasScreen(db: AppDatabase, demandas: List<DemandaEntity>) {
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 12.dp)) {
                 items(cobrancas, key = { it.id }) { item ->
-                    Card(colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
+                    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(12.dp)) {
                             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                                 Text(item.destino, color = AzulMarinho, fontWeight = FontWeight.Bold)
@@ -141,7 +141,7 @@ fun CentralCobrancasScreen(db: AppDatabase, demandas: List<DemandaEntity>) {
 
 @Composable
 private fun ResumoCentral(titulo: String, valor: Int, cor: Color, modifier: Modifier = Modifier) {
-    Card(modifier = modifier.height(76.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+    Card(modifier = modifier.height(76.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Column(Modifier.fillMaxSize().padding(10.dp), verticalArrangement = Arrangement.SpaceBetween) {
             Text(valor.toString(), color = cor, fontWeight = FontWeight.Bold, fontSize = 22.sp)
             Text(titulo, color = AzulMarinho, fontSize = 11.sp)
