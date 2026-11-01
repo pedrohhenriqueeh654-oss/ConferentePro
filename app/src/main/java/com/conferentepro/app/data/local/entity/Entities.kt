@@ -66,7 +66,6 @@ data class OcorrenciaProdutoEntity(
     val dataResolucao: Long? = null
 )
 
-
 @Entity(tableName = "cobrancas", indices = [Index("proximaCobranca"), Index("dataContato")])
 data class CobrancaEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -78,4 +77,16 @@ data class CobrancaEntity(
     val proximaCobranca: Long? = null,
     val status: String = "PENDENTE",
     val observacoes: String = ""
+)
+
+@Entity(tableName = "remanejos", indices = [Index("numeroNota"), Index("dataRegistro")])
+data class RemanejoEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val numeroNota: String,
+    val filialSaida: String,
+    val filialDestino: String,
+    val retiradoPor: String,
+    val assinaturaBase64: String,
+    val observacoes: String = "",
+    val dataRegistro: Long = System.currentTimeMillis()
 )
