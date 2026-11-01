@@ -53,6 +53,8 @@ interface CobrancaDao {
 
 @Dao
 interface RemanejoDao {
+    @Query("SELECT * FROM remanejos WHERE LOWER(TRIM(numeroNota)) = LOWER(TRIM(:numero)) LIMIT 1")
+    suspend fun buscarPorNumeroNota(numero: String): RemanejoEntity?
     @Query("SELECT * FROM remanejos ORDER BY dataRegistro DESC")
     fun getTodos(): Flow<List<RemanejoEntity>>
     @Insert
