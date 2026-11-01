@@ -166,14 +166,14 @@ fun RemanejosScreen(db: AppDatabase) {
                     value = busca, onValueChange = { busca = it },
                     modifier = Modifier.fillMaxWidth(), singleLine = true,
                     label = { Text("Buscar NF, filial ou responsável") },
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(20.dp)
                 )
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
                     value = filtroFilial, onValueChange = { filtroFilial = it },
                     modifier = Modifier.fillMaxWidth(), singleLine = true,
                     label = { Text("Filtrar por filial (origem ou destino)") },
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(20.dp),
                     trailingIcon = { if (filtroFilial.isNotBlank()) TextButton(onClick = { filtroFilial = "" }) { Text("Limpar") } }
                 )
                 Spacer(Modifier.height(10.dp))
@@ -186,8 +186,8 @@ fun RemanejosScreen(db: AppDatabase) {
                         items(filtrados, key = { it.id }) { item ->
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(containerColor = Color.White),
-                                shape = RoundedCornerShape(12.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                                shape = RoundedCornerShape(20.dp),
                                 onClick = {
                                     if (modoSelecao) {
                                         if (idsSelecionados.contains(item.id)) idsSelecionados.remove(item.id) else idsSelecionados.add(item.id)
@@ -442,7 +442,7 @@ private fun RemanejoDetalhe(
             Text("COMPROVANTE", color = RemanejoNavy, fontWeight = FontWeight.Bold)
             TextButton(onClick = onBack) { Text("Voltar") }
         }
-        Card(Modifier.fillMaxWidth().weight(1f), colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(14.dp)) {
+        Card(Modifier.fillMaxWidth().weight(1f), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), shape = RoundedCornerShape(22.dp)) {
             Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text("REMANEJO DE MERCADORIAS", color = RemanejoNavy, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
                 HorizontalDivider()
