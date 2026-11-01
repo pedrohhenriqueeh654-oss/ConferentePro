@@ -211,9 +211,9 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.Assessment, contentDescription = null, tint = AzulMarinho)
                                 Spacer(Modifier.width(8.dp))
-                                Text("PAINEL DE PRODUTIVIDADE", color = AzulMarinho, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                Text("CONTROLE DE PRODUTOS", color = AzulMarinho, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                             }
-                            Text("Avarias, vencidos e produtos próximos do vencimento.", color = Color.Gray, fontSize = 12.sp)
+                            Text("Consulte avarias, produtos vencidos e próximos do vencimento.", color = Color.Gray, fontSize = 12.sp)
                             Spacer(Modifier.height(8.dp))
                             Button(
                                 onClick = { telaSelecionada = 5 },
@@ -222,7 +222,7 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                             ) {
                                 Icon(Icons.Default.BarChart, contentDescription = null)
                                 Spacer(Modifier.width(8.dp))
-                                Text("Abrir relatórios")
+                                Text("Abrir controle de produtos")
                             }
                         }
                     }
