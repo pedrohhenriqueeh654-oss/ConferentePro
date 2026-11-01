@@ -202,7 +202,15 @@ fun LeitorEanScreen() {
                         }
                     }
                 }
-                item { Text("HISTÓRICO DE OCORRÊNCIAS", fontWeight = FontWeight.Bold, color = AzulMarinho) }
+                item {
+                    Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
+                        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text("HISTÓRICO COMPLETO DO EAN", fontWeight = FontWeight.Bold, color = AzulMarinho)
+                            Text("${historico.size} registro(s) • ${historico.count { it.status.equals("PENDENTE", true) }} pendente(s) • ${historico.count { it.status.equals("RESOLVIDO", true) }} resolvido(s)", fontSize = 12.sp)
+                            Text("Os registros são exibidos do mais recente para o mais antigo e permanecem vinculados a este EAN.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
                 if (historico.isEmpty()) item { Text("Nenhuma ocorrência registrada para este produto.", color = MaterialTheme.colorScheme.onSurfaceVariant) }
                 items(historico) { item ->
                     Card(Modifier.fillMaxWidth()) {
@@ -213,7 +221,18 @@ fun LeitorEanScreen() {
                             if (item.validade != null) Text("Validade: ${SimpleDateFormat("dd/MM/yyyy", Locale("pt", "BR")).format(item.validade)}", fontSize = 12.sp)
                             if (item.protocolo.isNotBlank()) Text("Protocolo: ${item.protocolo}", fontSize = 12.sp)
                             if (item.observacoes.isNotBlank()) Text(item.observacoes, fontSize = 12.sp)
-                            Text("Registrado em ${SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("pt", "BR")).format(item.dataRegistro)} • ${item.status}", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("Registrado em ${SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("pt", "BR")).format(item.dataRegistro)}", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Surface(
+                                    color = if (item.status.equals("RESOLVIDO", true)) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.errorContainer,
+                                    shape = RoundedCornerShape(50)
+                                ) {
+                                    Text(item.status, modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                }
+                                item.dataResolucao?.let { resolucao ->
+                                    Text("Resolvido em ${SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("pt", "BR")).format(resolucao)}", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
                         }
                     }
                 }
