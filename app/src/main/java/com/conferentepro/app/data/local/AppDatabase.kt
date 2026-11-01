@@ -1,4 +1,3 @@
-
 package com.conferentepro.app.data.local
 
 import android.content.Context
@@ -12,10 +11,8 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 interface DemandaDao {
     @Query("SELECT * FROM demandas ORDER BY dataPrazoFinal ASC")
     fun getAllDemandas(): Flow<List<DemandaEntity>>
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertDemanda(demanda: DemandaEntity): Long
-
     @Update
     suspend fun updateDemanda(demanda: DemandaEntity)
 }
@@ -24,7 +21,6 @@ interface DemandaDao {
 interface HistoricoDao {
     @Query("SELECT * FROM historico_timeline WHERE demandaId = :demandaId ORDER BY dataHoraRegistro DESC")
     fun getHistorico(demandaId: Long): Flow<List<HistoricoTimelineEntity>>
-
     @Insert
     suspend fun insertHistorico(item: HistoricoTimelineEntity): Long
 }
@@ -55,9 +51,17 @@ interface CobrancaDao {
     suspend fun concluir(id: Long)
 }
 
+@Dao
+interface RemanejoDao {
+    @Query("SELECT * FROM remanejos ORDER BY dataRegistro DESC")
+    fun getTodos(): Flow<List<RemanejoEntity>>
+    @Insert
+    suspend fun inserir(item: RemanejoEntity): Long
+}
+
 @Database(
-    entities = [DemandaEntity::class, HistoricoTimelineEntity::class, ProdutoEntity::class, OcorrenciaProdutoEntity::class, CobrancaEntity::class],
-    version = 3,
+    entities = [DemandaEntity::class, HistoricoTimelineEntity::class, ProdutoEntity::class, OcorrenciaProdutoEntity::class, CobrancaEntity::class, RemanejoEntity::class],
+    version = 4,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -66,6 +70,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun historicoDao(): HistoricoDao
     abstract fun produtoDao(): ProdutoDao
     abstract fun cobrancaDao(): CobrancaDao
+    abstract fun remanejoDao(): RemanejoDao
 
     companion object {
         private val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -76,7 +81,6 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_ocorrencias_produto_dataRegistro ON ocorrencias_produto(dataRegistro)")
             }
         }
-
         private val MIGRATION_2_3 = object : Migration(2, 3) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("CREATE TABLE IF NOT EXISTS cobrancas (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, destino TEXT NOT NULL, referencia TEXT NOT NULL, pessoaContatada TEXT NOT NULL, dataContato INTEGER NOT NULL, resposta TEXT NOT NULL, proximaCobranca INTEGER, status TEXT NOT NULL, observacoes TEXT NOT NULL)")
@@ -84,20 +88,19 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_cobrancas_dataContato ON cobrancas(dataContato)")
             }
         }
-
-        @Volatile
-        private var instance: AppDatabase? = null
-
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("CREATE TABLE IF NOT EXISTS remanejos (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, numeroNota TEXT NOT NULL, filialSaida TEXT NOT NULL, filialDestino TEXT NOT NULL, retiradoPor TEXT NOT NULL, assinaturaBase64 TEXT NOT NULL, observacoes TEXT NOT NULL, dataRegistro INTEGER NOT NULL)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_remanejos_numeroNota ON remanejos(numeroNota)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_remanejos_dataRegistro ON remanejos(dataRegistro)")
+            }
+        }
+        @Volatile private var instance: AppDatabase? = null
         fun getInstance(ctx: Context): AppDatabase =
             instance ?: synchronized(this) {
-                instance ?: Room.databaseBuilder(
-                    ctx.applicationContext,
-                    AppDatabase::class.java,
-                    "conferente_pro.db"
-                )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
-                    .build()
-                    .also { instance = it }
+                instance ?: Room.databaseBuilder(ctx.applicationContext, AppDatabase::class.java, "conferente_pro.db")
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                    .build().also { instance = it }
             }
     }
 }
