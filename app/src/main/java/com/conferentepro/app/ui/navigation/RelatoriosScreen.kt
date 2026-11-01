@@ -47,7 +47,7 @@ fun RelatoriosScreen(db: AppDatabase) {
     val formato = remember { SimpleDateFormat("dd/MM/yyyy", Locale("pt", "BR")) }
 
     Column(Modifier.fillMaxSize()) {
-        Text("PAINEL DE PRODUTIVIDADE", color = AzulMarinho, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+        Text("CONTROLE DE PRODUTOS", color = AzulMarinho, fontWeight = FontWeight.Bold, fontSize = 18.sp)
         Text("Indicadores calculados automaticamente a partir das fichas de produto.", color = Color.Gray, fontSize = 12.sp)
         Spacer(Modifier.height(14.dp))
         LazyColumn(
