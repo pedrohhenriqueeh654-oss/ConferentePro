@@ -95,6 +95,12 @@ fun MainAppNavigation() {
                     icon = { Icon(Icons.Default.AutoAwesome, contentDescription = "Assistente", tint = if (telaSelecionada == 3) LaranjaUltra else Color.LightGray) },
                     label = { Text("Assistente", color = if (telaSelecionada == 3) LaranjaUltra else Color.LightGray) }
                 )
+                NavigationBarItem(
+                    selected = telaSelecionada == 4,
+                    onClick = { telaSelecionada = 4 },
+                    icon = { Icon(Icons.Default.NotificationsActive, contentDescription = "Central", tint = if (telaSelecionada == 4) LaranjaUltra else Color.LightGray) },
+                    label = { Text("Central", color = if (telaSelecionada == 4) LaranjaUltra else Color.LightGray) }
+                )
             }
         },
         floatingActionButton = {
@@ -266,8 +272,10 @@ fun MainAppNavigation() {
                 }
             } else if (telaSelecionada == 2) {
                 LeitorEanScreen()
-            } else {
+            } else if (telaSelecionada == 3) {
                 AssistenteOperacionalScreen(demandas = demandas)
+            } else {
+                CentralCobrancasScreen(db = db, demandas = demandas)
             }
         }
     }
