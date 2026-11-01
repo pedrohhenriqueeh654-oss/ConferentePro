@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
@@ -246,7 +247,7 @@ private fun RemanejoDetalhe(item: RemanejoEntity, onBack: () -> Unit, onShare: (
                 val bitmap = remember(bytes) { android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size) }
                 if (bitmap != null) {
                     androidx.compose.foundation.Image(
-                        bitmap = androidx.compose.ui.graphics.asImageBitmap(),
+                        bitmap = bitmap.asImageBitmap(),
                         contentDescription = "Assinatura de quem retirou",
                         modifier = Modifier.fillMaxWidth().height(76.dp)
                     )
