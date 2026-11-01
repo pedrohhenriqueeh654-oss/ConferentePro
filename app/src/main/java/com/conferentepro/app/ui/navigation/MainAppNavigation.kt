@@ -71,36 +71,21 @@ fun MainAppNavigation() {
         },
         bottomBar = {
             NavigationBar(containerColor = AzulMarinho) {
-                NavigationBarItem(
-                    selected = telaSelecionada == 0,
-                    onClick = { telaSelecionada = 0 },
+                NavigationBarItem(selected = telaSelecionada == 0, onClick = { telaSelecionada = 0 },
                     icon = { Icon(Icons.Default.Dashboard, contentDescription = "Início", tint = if (telaSelecionada == 0) LaranjaUltra else Color.LightGray) },
-                    label = { Text("Início", color = if (telaSelecionada == 0) LaranjaUltra else Color.LightGray) }
-                )
-                NavigationBarItem(
-                    selected = telaSelecionada == 1,
-                    onClick = { telaSelecionada = 1 },
-                    icon = { Icon(Icons.Default.Checklist, contentDescription = "Demandas", tint = if (telaSelecionada == 1) LaranjaUltra else Color.LightGray) },
-                    label = { Text("Demandas", color = if (telaSelecionada == 1) LaranjaUltra else Color.LightGray) }
-                )
-                NavigationBarItem(
-                    selected = telaSelecionada == 2,
-                    onClick = { telaSelecionada = 2 },
-                    icon = { Icon(Icons.Default.QrCodeScanner, contentDescription = "Leitor EAN", tint = if (telaSelecionada == 2) LaranjaUltra else Color.LightGray) },
-                    label = { Text("Leitor EAN", color = if (telaSelecionada == 2) LaranjaUltra else Color.LightGray) }
-                )
-                NavigationBarItem(
-                    selected = telaSelecionada == 3,
-                    onClick = { telaSelecionada = 3 },
-                    icon = { Icon(Icons.Default.AutoAwesome, contentDescription = "Assistente", tint = if (telaSelecionada == 3) LaranjaUltra else Color.LightGray) },
-                    label = { Text("Assistente", color = if (telaSelecionada == 3) LaranjaUltra else Color.LightGray) }
-                )
-                NavigationBarItem(
-                    selected = telaSelecionada == 4,
-                    onClick = { telaSelecionada = 4 },
-                    icon = { Icon(Icons.Default.NotificationsActive, contentDescription = "Central", tint = if (telaSelecionada == 4) LaranjaUltra else Color.LightGray) },
-                    label = { Text("Central", color = if (telaSelecionada == 4) LaranjaUltra else Color.LightGray) }
-                )
+                    label = { Text("Início", color = if (telaSelecionada == 0) LaranjaUltra else Color.LightGray) })
+                NavigationBarItem(selected = telaSelecionada == 1, onClick = { telaSelecionada = 1 },
+                    icon = { Icon(Icons.Default.SwapHoriz, contentDescription = "Remanejos", tint = if (telaSelecionada == 1) LaranjaUltra else Color.LightGray) },
+                    label = { Text("Remanejos", color = if (telaSelecionada == 1) LaranjaUltra else Color.LightGray) })
+                NavigationBarItem(selected = telaSelecionada == 2, onClick = { telaSelecionada = 2 },
+                    icon = { Icon(Icons.Default.Checklist, contentDescription = "Demandas", tint = if (telaSelecionada == 2) LaranjaUltra else Color.LightGray) },
+                    label = { Text("Demandas", color = if (telaSelecionada == 2) LaranjaUltra else Color.LightGray) })
+                NavigationBarItem(selected = telaSelecionada == 3, onClick = { telaSelecionada = 3 },
+                    icon = { Icon(Icons.Default.QrCodeScanner, contentDescription = "Leitor EAN", tint = if (telaSelecionada == 3) LaranjaUltra else Color.LightGray) },
+                    label = { Text("Leitor EAN", color = if (telaSelecionada == 3) LaranjaUltra else Color.LightGray) })
+                NavigationBarItem(selected = telaSelecionada == 4, onClick = { telaSelecionada = 4 },
+                    icon = { Icon(Icons.Default.AutoAwesome, contentDescription = "Assistente", tint = if (telaSelecionada == 4) LaranjaUltra else Color.LightGray) },
+                    label = { Text("Assistente", color = if (telaSelecionada == 4) LaranjaUltra else Color.LightGray) })
             }
         },
     ) { padding ->
