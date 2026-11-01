@@ -75,7 +75,7 @@ fun RelatoriosScreen(db: AppDatabase) {
                 }
             }
             item {
-                Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(22.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                     Column(Modifier.padding(14.dp)) {
                         Row {
                             Icon(Icons.Default.EventAvailable, contentDescription = null, tint = Color(0xFF087E83))
@@ -123,7 +123,7 @@ private fun RelatorioCard(
     cor: Color,
     modifier: Modifier = Modifier
 ) {
-    Card(modifier = modifier, shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+    Card(modifier = modifier, shape = RoundedCornerShape(22.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Column(Modifier.padding(12.dp)) {
             Icon(icone, contentDescription = null, tint = cor, modifier = Modifier.size(26.dp))
             Spacer(Modifier.height(8.dp))
@@ -136,7 +136,7 @@ private fun RelatorioCard(
 
 @Composable
 private fun AvariaRelatorioItem(item: OcorrenciaProdutoEntity, nomeProduto: String) {
-    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Text("AVARIA", color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold, fontSize = 11.sp)
             Text(nomeProduto, color = AzulMarinho, fontWeight = FontWeight.Bold, fontSize = 15.sp)
@@ -151,7 +151,7 @@ private fun AvariaRelatorioItem(item: OcorrenciaProdutoEntity, nomeProduto: Stri
 
 @Composable
 private fun ValidadeRelatorioItem(item: OcorrenciaProdutoEntity, vencido: Boolean, nomeProduto: String, dataFormatada: String) {
-    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Text(if (vencido) "VENCIDO" else "PRÓXIMO DO VENCIMENTO", color = if (vencido) Color(0xFFD32F2F) else Color(0xFF087E83), fontWeight = FontWeight.Bold, fontSize = 11.sp)
             Text(nomeProduto, color = AzulMarinho, fontWeight = FontWeight.Bold, fontSize = 15.sp)
