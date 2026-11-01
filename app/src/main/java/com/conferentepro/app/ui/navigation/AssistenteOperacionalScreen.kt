@@ -58,31 +58,13 @@ fun AssistenteOperacionalScreen(
     val cobrancasPendentes = cobrancas.count { !it.status.equals("RESOLVIDA", true) && !it.status.equals("CONCLUIDA", true) }
 
     Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(22.dp),
-            colors = CardDefaults.cardColors(containerColor = AzulMarinho)
-        ) {
-            Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                Surface(shape = RoundedCornerShape(14.dp), color = Color.White.copy(alpha = 0.12f)) {
-                    Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = LaranjaUltra, modifier = Modifier.padding(11.dp).size(28.dp))
-                }
-                Spacer(Modifier.width(12.dp))
-                Column(Modifier.weight(1f)) {
-                    Text("Assistente Operacional", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                    Text("Consulta inteligente dos dados deste aparelho", color = Color.White.copy(alpha = .78f), fontSize = 11.sp)
-                }
-                Surface(shape = RoundedCornerShape(20.dp), color = Color(0xFF1F665F)) {
-                    Text("OFFLINE", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 9.dp, vertical = 6.dp))
-                }
-            }
-        }
+        CabecalhoTela("Assistente operacional", "Consultas e orientações com base nos dados locais", "OFFLINE")
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-            MiniIndicadorAssistente("Remanejos", remanejos.size.toString(), Modifier.weight(1f))
-            MiniIndicadorAssistente("Sem assinatura", semAssinatura.toString(), Modifier.weight(1f))
-            MiniIndicadorAssistente("Demandas atrasadas", atrasadas.size.toString(), Modifier.weight(1f))
+            IndicadorVisual("Remanejos", remanejos.size.toString(), modifier = Modifier.weight(1f))
+            IndicadorVisual("Sem assinatura", semAssinatura.toString(), modifier = Modifier.weight(1f))
+            IndicadorVisual("Demandas atrasadas", atrasadas.size.toString(), modifier = Modifier.weight(1f))
         }
-        Text("PERGUNTAS RÁPIDAS", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+        TituloSecaoVisual("Perguntas rápidas")
         androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
             items(perguntas) { item ->
                 SuggestionChip(
@@ -91,7 +73,7 @@ fun AssistenteOperacionalScreen(
                 )
             }
         }
-        Text("CONVERSA", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+        TituloSecaoVisual("Conversa")
         LazyColumn(
             modifier = Modifier.weight(1f).fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp)
