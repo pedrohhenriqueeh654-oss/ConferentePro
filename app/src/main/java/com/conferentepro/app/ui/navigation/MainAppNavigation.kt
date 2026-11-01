@@ -51,6 +51,9 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
     var hoje by remember { mutableStateOf(LocalDate.now()) }
     var cicloCd by remember { mutableStateOf(MonthlyCdCycle.currentState(ctx, hoje)) }
     val demandas by db.demandaDao().getAllDemandas().collectAsState(initial = emptyList())
+    val ocorrenciasAbertas by db.produtoDao().getTodasOcorrencias().collectAsState(initial = emptyList())
+    val cobrancas by db.cobrancaDao().getTodas().collectAsState(initial = emptyList())
+    val remanejos by db.remanejoDao().getTodos().collectAsState(initial = emptyList())
 
     fun atualizarCiclo() {
         hoje = LocalDate.now()
@@ -341,6 +344,47 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                     }
                     Spacer(Modifier.height(12.dp))
                 }
+
+                    val semAssinatura = remanejos.filter { it.assinaturaBase64.isBlank() }.sortedBy { it.dataRegistro }
+                    val ocorrenciasPendentes = ocorrenciasAbertas.filter { it.status.equals("PENDENTE", true) }
+                    val cobrancasPendentes = cobrancas.filter { !it.status.equals("RESOLVIDA", true) && !it.status.equals("CONCLUIDA", true) }
+                    Spacer(Modifier.height(12.dp))
+                    Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("PAINEL DE PENDÊNCIAS", color = AzulMarinho, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                StatusResumoCard("SEM ASSINATURA", semAssinatura.size, Icons.Default.Draw, Color(0xFFB45309), Modifier.weight(1f))
+                                StatusResumoCard("OCORRÊNCIAS", ocorrenciasPendentes.size, Icons.Default.WarningAmber, VermelhoAtraso, Modifier.weight(1f))
+                            }
+                            StatusResumoCard("COBRANÇAS PENDENTES", cobrancasPendentes.size, Icons.Default.NotificationsActive, Color(0xFF287A9B), Modifier.fillMaxWidth())
+                            Text("REMANEJOS AGUARDANDO ASSINATURA", color = AzulMarinho, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            if (semAssinatura.isEmpty()) {
+                                Text("Nenhum remanejo aguardando assinatura.", color = Color(0xFF388E3C), fontSize = 12.sp)
+                            } else {
+                                semAssinatura.take(10).forEach { item ->
+                                    val dias = ((agora - item.dataRegistro).coerceAtLeast(0L) / 86400000L).toInt()
+                                    Column(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp)).padding(10.dp)) {
+                                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                            Text("NF " + item.numeroNota, fontWeight = FontWeight.SemiBold, color = AzulMarinho)
+                                            Text(if (dias == 0) "Hoje" else if (dias == 1) "1 dia" else "$dias dias", color = if (dias >= 3) VermelhoAtraso else Color(0xFFB45309), fontWeight = FontWeight.Bold)
+                                        }
+                                        Text(item.filialSaida + " → " + item.filialDestino, fontSize = 11.sp)
+                                        Text("Criado em " + java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale("pt", "BR")).format(java.util.Date(item.dataRegistro)), fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                }
+                                if (semAssinatura.size > 10) Text("E mais " + (semAssinatura.size - 10) + " remanejo(s).", fontSize = 11.sp, color = Color.Gray)
+                            }
+                            HorizontalDivider()
+                            Text("COBRANÇAS PENDENTES", color = AzulMarinho, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            if (cobrancasPendentes.isEmpty()) Text("Nenhuma cobrança pendente.", fontSize = 12.sp)
+                            else cobrancasPendentes.take(5).forEach { item ->
+                                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    Text(item.destino + " • " + item.referencia, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                                    Text("Contato: " + item.pessoaContatada + " • Próxima cobrança: " + (item.proximaCobranca?.let { java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale("pt", "BR")).format(java.util.Date(it)) } ?: "não definida"), fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
+                        }
+                    }
             } else if (telaSelecionada == 1) {
                 RemanejosScreen(db = db)
             } else if (telaSelecionada == 7) {
