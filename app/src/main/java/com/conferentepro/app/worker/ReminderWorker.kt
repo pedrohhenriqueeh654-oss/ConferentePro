@@ -16,6 +16,7 @@ class ReminderWorker(private val ctx: Context, params: WorkerParameters) : Corou
         val database = AppDatabase.getInstance(ctx)
         val demandas = database.demandaDao().getAllDemandas().first()
         val agora = System.currentTimeMillis()
+        val cobrancasVencidas = database.cobrancaDao().getTodas().first().filter { it.status == "PENDENTE" && it.proximaCobranca != null && it.proximaCobranca <= agora }
         val atrasadas = demandas.filter { !it.concluida && it.dataPrazoFinal < agora }
 
         val manager = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -35,6 +36,18 @@ class ReminderWorker(private val ctx: Context, params: WorkerParameters) : Corou
                 .setAutoCancel(true)
                 .build()
             manager.notify(101, notif)
+        }
+
+        if (cobrancasVencidas.isNotEmpty()) {
+            val notification = NotificationCompat.Builder(ctx, channelId)
+                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setContentTitle("Cobranças que precisam de retorno")
+                .setContentText("Você tem ${cobrancasVencidas.size} acompanhamento(s) com nova cobrança prevista.")
+                .setStyle(NotificationCompat.BigTextStyle().bigText("Verifique os contatos com CD e fornecedores e registre os retornos."))
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setAutoCancel(true)
+                .build()
+            manager.notify(103, notification)
         }
 
         // This reminder is calendar-based and does not depend on any product being registered.
