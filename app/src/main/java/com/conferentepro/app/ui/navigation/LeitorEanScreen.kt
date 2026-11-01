@@ -81,6 +81,7 @@ fun LeitorEanScreen() {
     }
 
     Column(Modifier.fillMaxSize()) {
+        if (ean.isBlank()) {
         Text("FICHA DE PRODUTO", color = AzulMarinho, fontWeight = FontWeight.Bold, fontSize = 18.sp)
         Text("Leia o EAN para abrir o cadastro e registrar avarias, vencimentos, divergências e destino.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
         Spacer(Modifier.height(10.dp))
@@ -93,7 +94,7 @@ fun LeitorEanScreen() {
         // A câmera fica ativa somente enquanto aguardamos uma leitura.
         // Ao capturar um EAN, removemos o Preview da composição e o DisposableEffect
         // executa unbindAll(), encerrando a câmera e a análise.
-        if (temPermissao && ean.isBlank()) {
+        if (temPermissao) {
             CameraEanPreview(
                 modifier = Modifier.fillMaxWidth().height(190.dp),
                 lifecycleOwner = lifecycleOwner,
@@ -109,7 +110,18 @@ fun LeitorEanScreen() {
                 }
             }
         }
+        }
         if (ean.isNotBlank()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text("FICHA DO PRODUTO", color = AzulMarinho, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text("EAN: $ean", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
+                }
+            }
             OutlinedButton(
                 onClick = {
                     ean = ""
