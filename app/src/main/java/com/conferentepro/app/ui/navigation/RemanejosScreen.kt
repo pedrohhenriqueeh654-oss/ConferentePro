@@ -53,6 +53,9 @@ fun RemanejosScreen(db: AppDatabase) {
     var filtroFilial by remember { mutableStateOf("") }
     var telaCadastro by remember { mutableStateOf(false) }
     var selecionado by remember { mutableStateOf<RemanejoEntity?>(null) }
+    var modoSelecao by remember { mutableStateOf(false) }
+    val idsSelecionados = remember { mutableStateListOf<Long>() }
+    var mostrarAssinaturaLote by remember { mutableStateOf(false) }
 
     val filtrados = registros.filter { item ->
         val texto = busca.trim()
@@ -111,6 +114,23 @@ fun RemanejosScreen(db: AppDatabase) {
                 onShare = { compartilharComprovante(context, selecionado!!) }
             )
             else -> {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedButton(onClick = { modoSelecao = !modoSelecao; idsSelecionados.clear() }, modifier = Modifier.weight(1f)) {
+                        Text(if (modoSelecao) "Cancelar seleção" else "Selecionar para assinar")
+                    }
+                    if (modoSelecao) {
+                        Button(onClick = { mostrarAssinaturaLote = true }, enabled = idsSelecionados.isNotEmpty(), colors = ButtonDefaults.buttonColors(containerColor = RemanejoAccent)) {
+                            Text("Assinar (${idsSelecionados.size})")
+                        }
+                    }
+                }
+                if (modoSelecao) {
+                    Text("Marque os remanejos existentes que deseja assinar. A mesma assinatura será aplicada a todos.", color = Color.Gray, style = MaterialTheme.typography.bodySmall)
+                    TextButton(onClick = {
+                        idsSelecionados.clear()
+                        filtrados.filter { it.assinaturaBase64.isBlank() }.forEach { idsSelecionados.add(it.id) }
+                    }) { Text("Selecionar todos não assinados") }
+                }
                 OutlinedTextField(
                     value = busca, onValueChange = { busca = it },
                     modifier = Modifier.fillMaxWidth(), singleLine = true,
@@ -137,11 +157,20 @@ fun RemanejosScreen(db: AppDatabase) {
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = CardDefaults.cardColors(containerColor = Color.White),
                                 shape = RoundedCornerShape(12.dp),
-                                onClick = { selecionado = item }
+                                onClick = {
+                                    if (modoSelecao) {
+                                        if (idsSelecionados.contains(item.id)) idsSelecionados.remove(item.id) else idsSelecionados.add(item.id)
+                                    } else selecionado = item
+                                }
                             ) {
                                 Column(Modifier.padding(14.dp)) {
-                                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                        Text("NF ${item.numeroNota}", color = RemanejoNavy, fontWeight = FontWeight.Bold)
+                                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                        Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                                            if (modoSelecao) Checkbox(checked = idsSelecionados.contains(item.id), onCheckedChange = { checked ->
+                                                if (checked) idsSelecionados.add(item.id) else idsSelecionados.remove(item.id)
+                                            })
+                                            Text("NF ${item.numeroNota}", color = RemanejoNavy, fontWeight = FontWeight.Bold)
+                                        }
                                         Text(formatarData(item.dataRegistro), color = Color.Gray, style = MaterialTheme.typography.labelSmall)
                                     }
                                     Spacer(Modifier.height(5.dp))
@@ -162,6 +191,48 @@ fun RemanejosScreen(db: AppDatabase) {
             }
         }
     }
+    if (mostrarAssinaturaLote) {
+        AssinaturaLoteDialog(quantidade = idsSelecionados.size, onDismiss = { mostrarAssinaturaLote = false }, onConfirm = { assinatura ->
+            scope.launch {
+                idsSelecionados.toList().forEach { id -> db.remanejoDao().atualizarAssinatura(id, assinatura) }
+                idsSelecionados.clear()
+                modoSelecao = false
+                mostrarAssinaturaLote = false
+            }
+        })
+    }
+}
+
+@Composable
+private fun AssinaturaLoteDialog(quantidade: Int, onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
+    val pontos = remember { mutableStateListOf<Offset>() }
+    var largura by remember { mutableFloatStateOf(1f) }
+    var altura by remember { mutableFloatStateOf(1f) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Assinar $quantidade remanejo(s)") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Desenhe sua assinatura uma única vez. Ela será aplicada aos registros selecionados.")
+                Canvas(Modifier.fillMaxWidth().height(130.dp).background(Color.White, RoundedCornerShape(10.dp))
+                    .pointerInput(Unit) {
+                        detectDragGestures(onDragStart = { p -> pontos.add(p); largura = size.width.toFloat(); altura = size.height.toFloat() },
+                            onDrag = { change, _ -> pontos.add(change.position); change.consume() })
+                    }
+                    .pointerInput(Unit) { detectTapGestures { p -> pontos.add(p); largura = size.width.toFloat(); altura = size.height.toFloat() } }
+                ) {
+                    drawLine(Color.LightGray, Offset(8f, size.height - 14f), Offset(size.width - 8f, size.height - 14f), 1.dp.toPx())
+                    if (pontos.size > 1) {
+                        val path = Path().apply { moveTo(pontos.first().x, pontos.first().y); pontos.drop(1).forEach { lineTo(it.x, it.y) } }
+                        drawPath(path, RemanejoNavy, style = Stroke(width = 2.8.dp.toPx()))
+                    }
+                }
+                TextButton(onClick = { pontos.clear() }) { Text("Limpar assinatura") }
+            }
+        },
+        confirmButton = { Button(onClick = { onConfirm(criarAssinaturaBase64(pontos.toList(), largura, altura)) }, enabled = pontos.size >= 2, colors = ButtonDefaults.buttonColors(containerColor = RemanejoAccent)) { Text("Aplicar assinatura") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } }
+    )
 }
 
 @Composable
