@@ -49,7 +49,13 @@ fun AssistenteOperacionalScreen(
         PerguntaRapida("Demandas atrasadas", "Quais demandas estão atrasadas?"),
         PerguntaRapida("Ocorrências pendentes", "Quais ocorrências estão pendentes?"),
         PerguntaRapida("Cobranças", "Quais cobranças precisam de retorno?"),
-        PerguntaRapida("Resumo geral", "Faça um resumo geral da operação")
+        PerguntaRapida("Resumo geral", "Faça um resumo geral da operação"),
+        PerguntaRapida("Começar do zero", "Sou novo no aplicativo. Me ensine a usar o Conferente Pro passo a passo."),
+        PerguntaRapida("Conhecer as telas", "Quais são todas as telas e para que serve cada uma?"),
+        PerguntaRapida("Como usar o leitor", "Como usar o leitor EAN passo a passo?"),
+        PerguntaRapida("Como fazer remanejo", "Como registrar um remanejo e coletar assinatura?"),
+        PerguntaRapida("Como registrar ocorrência", "Como registrar uma avaria ou ocorrência?"),
+        PerguntaRapida("Como acompanhar", "Como acompanhar demandas e cobranças?")
     )
     val abertas = demandas.filter { !it.concluida && it.status != StatusDemanda.CONCLUIDA && it.status != StatusDemanda.CANCELADA }
     val atrasadas = abertas.filter { it.dataPrazoFinal != Long.MAX_VALUE && it.dataPrazoFinal < System.currentTimeMillis() }
@@ -146,6 +152,7 @@ private fun responderOperacionalmente(
     val data = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("pt", "BR"))
     val dataCurta = SimpleDateFormat("dd/MM/yyyy", Locale("pt", "BR"))
 
+    responderGuiaDeUso(q)?.let { return it }
     responderConhecimentoOperacional(q)?.let { return it }
 
     val nfInformada = Regex("(?:nf|nota(?: fiscal)?|remanejo)\\s*(?:n[º°.]?\\s*)?([a-z0-9./-]+)", RegexOption.IGNORE_CASE)
@@ -208,6 +215,70 @@ private fun responderOperacionalmente(
             return "RESUMO GERAL DA OPERAÇÃO\n\n• Remanejos cadastrados: ${remanejos.size}\n• Remanejos sem assinatura: ${semAssinatura.size}\n• Demandas em aberto: ${abertas.size}\n• Demandas atrasadas: ${atrasadas.size}\n• Ocorrências registradas: ${ocorrencias.size}\n• Ocorrências pendentes: ${ocorrenciasPendentes.size}\n• Cobranças cadastradas: ${cobrancas.size}\n• Cobranças pendentes: ${cobrancasPendentes.size}\n\nAtenção: os números representam somente os registros existentes neste aparelho."
     }
     return """Ainda não identifiquei exatamente o que você quer consultar. Posso ajudar com:\n\n• Remanejos: "Quais remanejos foram feitos?", "Quais estão sem assinatura?" ou "Consulte a NF 12345".\n• Demandas: "O que está atrasado?", "O que aguarda o CD?", "Mostre as demandas por prioridade".\n• Ocorrências: "Quais avarias estão pendentes?", "Consulte ocorrências do EAN 789...".\n• Cobranças: "Quais fornecedores precisam de retorno?", "Qual a próxima cobrança?".\n• Geral: "Faça um resumo da operação".\n\nDica: informe o número da NF ou o EAN na pergunta para localizar um registro específico."""
+}
+
+/** Manual de primeiros passos e navegação do Conferente Pro. */
+private fun responderGuiaDeUso(q: String): String? {
+    val pedeAjuda = listOf("sou novo", "primeira vez", "comecar", "comecando", "por onde comeco", "como usar o aplicativo", "como usar o app", "me ensine", "me ensinar", "passo a passo", "manual", "tutorial", "guia do aplicativo", "guia do app", "ajuda geral", "nao entendo", "nao sei usar", "como funciona o aplicativo", "como funciona o app", "primeiros passos").any { q.contains(it) }
+    val pedeTelas = listOf("telas", "abas", "opcoes", "menus", "navegacao", "cada area", "cada parte").any { q.contains(it) }
+    if (!pedeAjuda && !pedeTelas) return null
+    if (pedeTelas && !pedeAjuda) return """
+MAPA DO APLICATIVO
+• Início: painel de demandas, ciclo mensal do CD e pendências.
+• Remanejos: cadastro e consulta de transferências, notas fiscais e assinaturas.
+• Leitor EAN: leitura do código de barras e consulta do produto.
+• Assistente: perguntas sobre uso, orientações e consultas aos dados locais.
+• Cobranças: contatos, respostas, status e próxima data de acompanhamento.
+• Ocorrências/produtos: avarias, validade e registros associados ao EAN.
+• Demandas: tarefas, prazos, prioridades e acompanhamento.
+• Relatórios: visão consolidada dos registros disponíveis no aparelho.
+• Ciclo do CD: acompanhamento do mês e registro de envio concluído.
+Algumas opções são acessadas pelos atalhos do painel inicial. Se não encontrar uma função, diga o que deseja fazer.
+""".trimIndent()
+
+    return """
+BEM-VINDO AO CONFERENTE PRO — GUIA DE PRIMEIROS PASSOS
+O aplicativo ajuda a organizar a rotina operacional. Funciona offline e mantém os registros neste aparelho. Não substitui o sistema oficial da empresa, documentos fiscais, autorizações ou procedimentos internos.
+
+1. TELA INICIAL
+Confira os cartões de demandas pendentes, em andamento, atrasadas e concluídas. Observe também o ciclo mensal do CD e o painel de atenção, que reúne remanejos sem assinatura, ocorrências pendentes e cobranças. Toque nos atalhos para abrir as áreas relacionadas.
+
+2. NAVEGAÇÃO
+Na barra inferior: Início abre o painel; Remanejos abre as transferências entre filiais; Leitor EAN abre a câmera; Assistente abre esta conversa. Cobranças, demandas e relatórios são acessados pelos atalhos e opções disponíveis no app.
+
+3. CADASTRO DE DADOS
+Confira números, nomes, filiais, datas e quantidades antes de salvar. Use descrições objetivas e observações para contexto. Não invente dados: confirme informações desconhecidas com o responsável.
+
+4. REGISTRAR UM REMANEJO
+Abra Remanejos e escolha novo registro. Informe uma única NF por registro, filial de saída, filial de destino e quem retirou. Preencha observações se necessário e salve. Abra o registro para conferir e coletar a assinatura individual ou usar assinatura em lote quando disponível. Sem assinatura, o registro permanece como NÃO ASSINADO; não assine por outra pessoa. O PDF também identifica a ausência de assinatura.
+
+5. USAR O LEITOR EAN
+Abra Leitor EAN e permita o acesso à câmera quando solicitado pelo Android. Posicione o código de barras na área de leitura e confira o produto encontrado. Se falhar, ajuste iluminação e distância e confira os dígitos impressos. Se o cadastro não existir ou estiver divergente, valide o EAN; não selecione um produto apenas parecido.
+
+6. REGISTRAR AVARIA OU VALIDADE
+Na área de produtos/ocorrências, informe ou localize o EAN e preencha tipo, destino, quantidade, unidade e, quando aplicável, lote, validade, protocolo e observações. Confira antes de salvar e acompanhe o status até a resolução. Produto vencido ou avariado deve seguir o procedimento interno e não deve voltar ao estoque disponível sem autorização.
+
+7. ACOMPANHAR DEMANDAS
+Crie uma demanda com título claro, descrição, categoria, prioridade e prazo. Atualize o status quando houver avanço ou bloqueio. Registre dependências, contatos e retornos. Só marque como concluída depois de confirmar a solução.
+
+8. REGISTRAR COBRANÇAS
+Na Central de Cobranças, informe destino/fornecedor, referência, pessoa contatada, data, resposta, status e próxima cobrança. Registre o retorno fielmente e programe novo contato quando necessário. Só encerre quando a pendência estiver resolvida.
+
+9. RELATÓRIOS E CICLO DO CD
+Use Relatórios para acompanhar os dados cadastrados. No cartão Ciclo do CD, confira mês de referência e data limite. Marque o envio como concluído somente depois de realizado e confirmado.
+
+10. PERGUNTAR AO ASSISTENTE
+Você pode escrever normalmente: "Como faço meu primeiro remanejo?", "Quais NFs estão sem assinatura?", "Consulte a NF 12345", "Como registrar uma avaria?", "Quais demandas estão atrasadas?", "Qual é a próxima cobrança?", "Como ler um EAN?" ou "Mostre todas as telas".
+
+11. CUIDADOS IMPORTANTES
+• Confira os dados antes de salvar e corrija erros assim que identificá-los.
+• Proteja o aparelho e mantenha Android e aplicativo atualizados.
+• O assistente consulta apenas os registros locais disponibilizados pelo app. Não acessa automaticamente Big Linx, sistemas da empresa, e-mails, internet ou outros aparelhos.
+• Orientações são gerais. Para dúvidas fiscais, segurança, descarte, devolução ou autorização de estoque, siga a liderança e os procedimentos oficiais.
+• A ausência de um registro no app não prova que o fato não ocorreu; pode apenas não ter sido cadastrado neste aparelho.
+
+COMECE PELO PAINEL INICIAL. Depois escolha a atividade que precisa executar. Se me disser o que está tentando fazer, explico aquele processo campo por campo.
+""".trimIndent()
 }
 
 /**
