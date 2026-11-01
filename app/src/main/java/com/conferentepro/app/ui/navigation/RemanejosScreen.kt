@@ -17,7 +17,7 @@ fun RemanejosScreen(db: AppDatabase) {
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
-            imageVector = androidx.compose.material.icons.Icons.Default.SwapHoriz,
+            imageVector = androidx.compose.material.icons.Icons.Default.LocalShipping,
             contentDescription = null,
             tint = AzulMarinho,
             modifier = Modifier.size(48.dp)
