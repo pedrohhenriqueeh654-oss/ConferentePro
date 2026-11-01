@@ -85,18 +85,22 @@ fun RemanejosScreen(db: AppDatabase) {
         when {
             telaCadastro -> RemanejoForm(
                 onCancel = { telaCadastro = false },
-                onSave = { numero, origem, destino, pessoa, assinatura, observacoes ->
+                onSave = { numeros, origem, destino, pessoa, assinatura, observacoes ->
                     scope.launch {
-                        db.remanejoDao().inserir(
-                            RemanejoEntity(
-                                numeroNota = numero.trim(),
-                                filialSaida = origem.trim(),
-                                filialDestino = destino.trim(),
-                                retiradoPor = pessoa.trim(),
-                                assinaturaBase64 = assinatura,
-                                observacoes = observacoes.trim()
+                        val dataRegistro = System.currentTimeMillis()
+                        numeros.forEach { numero ->
+                            db.remanejoDao().inserir(
+                                RemanejoEntity(
+                                    numeroNota = numero,
+                                    filialSaida = origem.trim(),
+                                    filialDestino = destino.trim(),
+                                    retiradoPor = pessoa.trim(),
+                                    assinaturaBase64 = assinatura,
+                                    observacoes = observacoes.trim(),
+                                    dataRegistro = dataRegistro
+                                )
                             )
-                        )
+                        }
                         telaCadastro = false
                     }
                 }
@@ -157,9 +161,10 @@ fun RemanejosScreen(db: AppDatabase) {
 @Composable
 private fun RemanejoForm(
     onCancel: () -> Unit,
-    onSave: (String, String, String, String, String, String) -> Unit
+    onSave: (List<String>, String, String, String, String, String) -> Unit
 ) {
-    var numero by remember { mutableStateOf("") }
+    var numerosTexto by remember { mutableStateOf("") }
+    var modoLote by remember { mutableStateOf(false) }
     var origem by remember { mutableStateOf("") }
     var destino by remember { mutableStateOf("") }
     var pessoa by remember { mutableStateOf("") }
@@ -170,9 +175,35 @@ private fun RemanejoForm(
     val assinaturaValida = pontos.size >= 2
 
     Column(Modifier.fillMaxSize()) {
-        Text("NOVO COMPROVANTE", color = RemanejoNavy, fontWeight = FontWeight.Bold)
+        Text(if (modoLote) "NOVOS REMANEJOS EM LOTE" else "NOVO COMPROVANTE", color = RemanejoNavy, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
-        OutlinedTextField(numero, { numero = it }, Modifier.fillMaxWidth(), label = { Text("Número da NF *") }, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(checked = modoLote, onCheckedChange = { modoLote = it; numerosTexto = "" })
+            Text("Adicionar vários remanejos de uma vez", color = RemanejoNavy, style = MaterialTheme.typography.bodyMedium)
+        }
+        OutlinedTextField(
+            value = numerosTexto,
+            onValueChange = { numerosTexto = it },
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text(if (modoLote) "Números das NFs *" else "Número da NF *") },
+            placeholder = { if (modoLote) Text("Digite uma NF por linha") },
+            minLines = if (modoLote) 4 else 1,
+            maxLines = if (modoLote) 7 else 1,
+            keyboardOptions = KeyboardOptions(keyboardType = if (modoLote) KeyboardType.Text else KeyboardType.Number)
+        )
+        val numerosValidos = remember(numerosTexto, modoLote) {
+            numerosTexto.split(Regex("[\\n,;\\t ]+"))
+                .map { it.trim() }
+                .filter { it.isNotBlank() }
+                .distinct()
+        }
+        if (modoLote) {
+            Text(
+                "${numerosValidos.size} NF(s) identificada(s). Uma assinatura será aplicada a todas.",
+                color = RemanejoAccent,
+                style = MaterialTheme.typography.labelSmall
+            )
+        }
         Spacer(Modifier.height(7.dp))
         OutlinedTextField(origem, { origem = it }, Modifier.fillMaxWidth(), label = { Text("Filial de origem *") }, singleLine = true)
         Spacer(Modifier.height(7.dp))
@@ -215,9 +246,9 @@ private fun RemanejoForm(
             Button(
                 onClick = {
                     val assinatura = criarAssinaturaBase64(pontos.toList(), largura, altura)
-                    onSave(numero, origem, destino, pessoa, assinatura, observacoes)
+                    onSave(numerosValidos, origem, destino, pessoa, assinatura, observacoes)
                 },
-                enabled = numero.isNotBlank() && origem.isNotBlank() && destino.isNotBlank() && pessoa.isNotBlank() && assinaturaValida,
+                enabled = numerosValidos.isNotEmpty() && origem.isNotBlank() && destino.isNotBlank() && pessoa.isNotBlank() && assinaturaValida,
                 modifier = Modifier.weight(1f),
                 colors = ButtonDefaults.buttonColors(containerColor = RemanejoAccent)
             ) { Text("Salvar") }
