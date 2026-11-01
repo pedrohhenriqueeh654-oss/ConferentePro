@@ -82,8 +82,7 @@ fun LeitorEanScreen() {
 
     Column(Modifier.fillMaxSize()) {
         if (ean.isBlank()) {
-        Text("FICHA DE PRODUTO", color = AzulMarinho, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-        Text("Leia o EAN para abrir o cadastro e registrar avarias, vencimentos, divergências e destino.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+        CabecalhoTela("Leitor de produtos", "Leia o EAN para consultar a ficha e registrar ocorrências", "SCANNER")
         Spacer(Modifier.height(10.dp))
         OutlinedTextField(
             value = ean, onValueChange = { ean = it.filter(Char::isDigit).take(14) },
@@ -144,7 +143,7 @@ fun LeitorEanScreen() {
         }
         Spacer(Modifier.height(8.dp))
         if (ean.isBlank()) {
-            Card(Modifier.fillMaxWidth()) { Text("Aguardando leitura. Aponte a câmera para o código de barras do produto.", Modifier.padding(16.dp), color = AzulMarinho) }
+            EstadoVazioVisual("Aguardando leitura", "Aponte a câmera para o código de barras ou digite o EAN manualmente.")
         } else if (verificando) {
             LinearProgressIndicator(Modifier.fillMaxWidth())
         } else if (produto == null) {
