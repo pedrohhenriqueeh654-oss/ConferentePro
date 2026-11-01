@@ -38,6 +38,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Calendar
 import java.util.Locale
 
 private val RemanejoBg = Color(0xFFF4F7F6)
@@ -59,6 +60,14 @@ fun RemanejosScreen(db: AppDatabase) {
     var mostrarAssinaturaIndividual by remember { mutableStateOf(false) }
     var remanejoDuplicado by remember { mutableStateOf<RemanejoEntity?>(null) }
 
+    val calendarioAtual = Calendar.getInstance()
+    val anoAtual = calendarioAtual.get(Calendar.YEAR)
+    val mesAtual = calendarioAtual.get(Calendar.MONTH)
+    val totalRemanejosMes = registros.count { registro ->
+        val data = Calendar.getInstance().apply { timeInMillis = registro.dataRegistro }
+        data.get(Calendar.YEAR) == anoAtual && data.get(Calendar.MONTH) == mesAtual
+    }
+
     val filtrados = registros.filter { item ->
         val texto = busca.trim()
         (texto.isBlank() || item.numeroNota.contains(texto, true) ||
@@ -79,11 +88,23 @@ fun RemanejosScreen(db: AppDatabase) {
                 Text("REMANEJOS", color = RemanejoNavy, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 Text("${registros.size} comprovante(s) registrado(s)", color = Color.Gray, style = MaterialTheme.typography.bodySmall)
             }
-            Button(
-                onClick = { selecionado = null; telaCadastro = true },
-                colors = ButtonDefaults.buttonColors(containerColor = RemanejoAccent),
-                shape = RoundedCornerShape(10.dp)
-            ) { Text("＋ Novo") }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Surface(
+                    color = Color.White,
+                    shape = RoundedCornerShape(10.dp),
+                    tonalElevation = 1.dp
+                ) {
+                    Column(Modifier.padding(horizontal = 10.dp, vertical = 7.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("ESTE MÊS", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
+                        Text("$totalRemanejosMes", color = RemanejoAccent, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                    }
+                }
+                Button(
+                    onClick = { selecionado = null; telaCadastro = true },
+                    colors = ButtonDefaults.buttonColors(containerColor = RemanejoAccent),
+                    shape = RoundedCornerShape(10.dp)
+                ) { Text("＋ Novo") }
+            }
         }
         Spacer(Modifier.height(12.dp))
 
