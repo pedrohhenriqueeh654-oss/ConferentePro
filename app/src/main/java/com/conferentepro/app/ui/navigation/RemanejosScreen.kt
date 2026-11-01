@@ -78,15 +78,15 @@ fun RemanejosScreen(db: AppDatabase) {
                 item.filialDestino.contains(filtroFilial, true))
     }
 
-    Column(Modifier.fillMaxSize().background(RemanejoBg)) {
+    Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                Text("REMANEJOS", color = RemanejoNavy, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                Text("${registros.size} comprovante(s) registrado(s)", color = Color.Gray, style = MaterialTheme.typography.bodySmall)
+                Text("Gestão de remanejos", color = RemanejoNavy, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Text("${registros.size} comprovante(s) registrado(s)", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Surface(
@@ -106,7 +106,7 @@ fun RemanejosScreen(db: AppDatabase) {
                 ) { Text("＋ Novo") }
             }
         }
-        Spacer(Modifier.height(12.dp))
+        CabecalhoTela("Gestão de remanejos", "Comprovantes, assinaturas e movimentações entre filiais", "DOCUMENTOS")
 
         when {
             telaCadastro -> RemanejoForm(
