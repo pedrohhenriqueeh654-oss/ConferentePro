@@ -75,7 +75,7 @@ fun MainAppNavigation() {
                     icon = { Icon(Icons.Default.Dashboard, contentDescription = "Início", tint = if (telaSelecionada == 0) LaranjaUltra else Color.LightGray) },
                     label = { Text("Início", color = if (telaSelecionada == 0) LaranjaUltra else Color.LightGray) })
                 NavigationBarItem(selected = telaSelecionada == 1, onClick = { telaSelecionada = 1 },
-                    icon = { Icon(Icons.Default.SwapHoriz, contentDescription = "Remanejos", tint = if (telaSelecionada == 1) LaranjaUltra else Color.LightGray) },
+                    icon = { Icon(Icons.Default.LocalShipping, contentDescription = "Remanejos", tint = if (telaSelecionada == 1) LaranjaUltra else Color.LightGray) },
                     label = { Text("Remanejos", color = if (telaSelecionada == 1) LaranjaUltra else Color.LightGray) })
                 NavigationBarItem(selected = telaSelecionada == 2, onClick = { telaSelecionada = 2 },
                     icon = { Icon(Icons.Default.Checklist, contentDescription = "Demandas", tint = if (telaSelecionada == 2) LaranjaUltra else Color.LightGray) },
