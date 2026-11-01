@@ -270,6 +270,8 @@ fun MainAppNavigation() {
                 }
                 }
             } else if (telaSelecionada == 1) {
+                RemanejosScreen(db = db)
+            } else if (telaSelecionada == 2) {
                 OutlinedTextField(
                     value = filtroDemandas,
                     onValueChange = { filtroDemandas = it },
@@ -308,11 +310,11 @@ fun MainAppNavigation() {
                         }
                     }
                 }
-            } else if (telaSelecionada == 2) {
-                LeitorEanScreen()
             } else if (telaSelecionada == 3) {
-                AssistenteOperacionalScreen(demandas = demandas)
+                LeitorEanScreen()
             } else if (telaSelecionada == 4) {
+                AssistenteOperacionalScreen(demandas = demandas)
+            } else if (telaSelecionada == 5) {
                 CentralCobrancasScreen(db = db, demandas = demandas)
             } else {
                 RelatoriosScreen(db = db)
