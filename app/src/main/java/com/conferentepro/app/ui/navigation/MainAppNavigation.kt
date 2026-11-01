@@ -35,7 +35,7 @@ val VermelhoAtraso = Color(0xFFD32F2F)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainAppNavigation() {
+fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
     val ctx = LocalContext.current
     val db = remember { AppDatabase.getInstance(ctx) }
     val scope = rememberCoroutineScope()
@@ -66,6 +66,15 @@ fun MainAppNavigation() {
                         Text("Desenvolvido por @eanpdro e GPT", color = Color.White.copy(alpha = 0.72f), fontSize = 10.sp, letterSpacing = 0.25.sp)
                     }
                 },
+                actions = {
+                    IconButton(onClick = onToggleTheme) {
+                        Icon(
+                            imageVector = if (isDarkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
+                            contentDescription = if (isDarkTheme) "Ativar tema claro" else "Ativar tema escuro",
+                            tint = Color.White
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = AzulMarinho)
             )
         },
@@ -90,7 +99,7 @@ fun MainAppNavigation() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(Color(0xFFF4F7F6))
+                .background(MaterialTheme.colorScheme.background)
                 .padding(16.dp)
         ) {
             if (telaSelecionada == 0) {
@@ -159,7 +168,7 @@ fun MainAppNavigation() {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(14.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White)
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
