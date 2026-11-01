@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.Text
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.darkColorScheme
@@ -26,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -59,7 +61,14 @@ class MainActivity : ComponentActivity() {
                 onBackground = Color(0xFFE8F0EF),
                 onSurface = Color(0xFFE8F0EF)
             )
-            MaterialTheme(colorScheme = if (darkTheme) darkColors else lightColors) {
+            MaterialTheme(
+                colorScheme = if (darkTheme) darkColors else lightColors,
+                shapes = Shapes(
+                    small = RoundedCornerShape(12.dp),
+                    medium = RoundedCornerShape(18.dp),
+                    large = RoundedCornerShape(24.dp)
+                )
+            ) {
                 LaunchedEffect(Unit) {
                     delay(1100)
                     showSplash = false
