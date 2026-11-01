@@ -1,7 +1,8 @@
 package com.conferentepro.app.ui.navigation
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,13 +17,6 @@ fun RemanejosScreen(db: AppDatabase) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Icon(
-            imageVector = androidx.compose.material.icons.Icons.Default.LocalShipping,
-            contentDescription = null,
-            tint = AzulMarinho,
-            modifier = Modifier.size(48.dp)
-        )
-        Spacer(Modifier.height(12.dp))
         Text("REMANEJOS", style = MaterialTheme.typography.titleLarge, color = AzulMarinho)
         Spacer(Modifier.height(8.dp))
         Text(
