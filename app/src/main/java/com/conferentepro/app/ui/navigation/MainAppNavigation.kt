@@ -178,7 +178,7 @@ fun MainAppNavigation() {
                             )
                             Spacer(Modifier.height(12.dp))
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                OutlinedButton(onClick = { telaSelecionada = 1 }, modifier = Modifier.weight(1f)) {
+                                OutlinedButton(onClick = { telaSelecionada = 2 }, modifier = Modifier.weight(1f)) {
                                     Icon(Icons.Default.FormatListBulleted, contentDescription = null)
                                     Spacer(Modifier.width(6.dp))
                                     Text("Ver demandas")
