@@ -241,7 +241,6 @@ private fun RemanejoForm(
     onSave: (List<String>, String, String, String, String, String) -> Unit
 ) {
     var numerosTexto by remember { mutableStateOf("") }
-    var modoLote by remember { mutableStateOf(false) }
     var origem by remember { mutableStateOf("") }
     var destino by remember { mutableStateOf("") }
     var pessoa by remember { mutableStateOf("") }
@@ -253,35 +252,17 @@ private fun RemanejoForm(
     val assinaturaValida = pontos.size >= 2
 
     Column(Modifier.fillMaxSize()) {
-        Text(if (modoLote) "NOVOS REMANEJOS EM LOTE" else "NOVO COMPROVANTE", color = RemanejoNavy, fontWeight = FontWeight.Bold)
+        Text("NOVO COMPROVANTE", color = RemanejoNavy, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(checked = modoLote, onCheckedChange = { modoLote = it; numerosTexto = "" })
-            Text("Adicionar vários remanejos de uma vez", color = RemanejoNavy, style = MaterialTheme.typography.bodyMedium)
-        }
         OutlinedTextField(
             value = numerosTexto,
             onValueChange = { numerosTexto = it },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text(if (modoLote) "Números das NFs *" else "Número da NF *") },
-            placeholder = { if (modoLote) Text("Digite uma NF por linha") },
-            minLines = if (modoLote) 4 else 1,
-            maxLines = if (modoLote) 7 else 1,
-            keyboardOptions = KeyboardOptions(keyboardType = if (modoLote) KeyboardType.Text else KeyboardType.Number)
+            label = { Text("Número da NF *") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            singleLine = true
         )
-        val numerosValidos = remember(numerosTexto, modoLote) {
-            numerosTexto.split(Regex("[\\n,;\\t ]+"))
-                .map { it.trim() }
-                .filter { it.isNotBlank() }
-                .distinct()
-        }
-        if (modoLote) {
-            Text(
-                "${numerosValidos.size} NF(s) identificada(s).",
-                color = RemanejoAccent,
-                style = MaterialTheme.typography.labelSmall
-            )
-        }
+        val numerosValidos = listOf(numerosTexto.trim()).filter { it.isNotBlank() }
         Spacer(Modifier.height(7.dp))
         OutlinedTextField(origem, { origem = it }, Modifier.fillMaxWidth(), label = { Text("Filial de origem *") }, singleLine = true)
         Spacer(Modifier.height(7.dp))
