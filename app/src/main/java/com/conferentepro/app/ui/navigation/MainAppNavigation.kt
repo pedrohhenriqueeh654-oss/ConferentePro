@@ -327,8 +327,10 @@ fun MainAppNavigation() {
                 LeitorEanScreen()
             } else if (telaSelecionada == 3) {
                 AssistenteOperacionalScreen(demandas = demandas)
-            } else {
+            } else if (telaSelecionada == 4) {
                 CentralCobrancasScreen(db = db, demandas = demandas)
+            } else {
+                RelatoriosScreen(db = db)
             }
         }
     }
