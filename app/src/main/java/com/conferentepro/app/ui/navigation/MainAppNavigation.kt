@@ -307,9 +307,9 @@ fun MainAppNavigation() {
                         }
                     }
                 }
-            } else if (telaSelecionada == 3) {
+            } else if (telaSelecionada == 2) {
                 LeitorEanScreen()
-            } else if (telaSelecionada == 4) {
+            } else if (telaSelecionada == 3) {
                 AssistenteOperacionalScreen(demandas = demandas)
             } else if (telaSelecionada == 5) {
                 CentralCobrancasScreen(db = db, demandas = demandas)
