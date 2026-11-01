@@ -46,7 +46,7 @@ fun CentralCobrancasScreen(db: AppDatabase, demandas: List<DemandaEntity>) {
     val cobrancasVencidas = cobrancas.count { it.status == "PENDENTE" && it.proximaCobranca != null && it.proximaCobranca!! <= agora }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        Text("CENTRAL DE NOTIFICAÇÕES E COBRANÇAS", color = AzulMarinho, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+        CabecalhoTela("Central de cobranças", "Acompanhe retornos, prazos e pendências com CD e fornecedores", "ACOMPANHAMENTO")
         Spacer(Modifier.height(10.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
             ResumoCentral("Atrasadas", atrasadas, Color(0xFFD32F2F), Modifier.weight(1f))
@@ -64,9 +64,9 @@ fun CentralCobrancasScreen(db: AppDatabase, demandas: List<DemandaEntity>) {
             Text("Registrar contato / cobrança")
         }
         Spacer(Modifier.height(8.dp))
-        Text("HISTÓRICO DE ACOMPANHAMENTOS", color = AzulMarinho, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+        TituloSecaoVisual("Histórico de acompanhamentos", "${cobrancas.size} registro(s) salvo(s)")
         if (cobrancas.isEmpty()) {
-            Text("Nenhuma cobrança registrada. Registre contatos com o CD ou fornecedor para acompanhar os retornos.", color = Color.Gray, modifier = Modifier.padding(top = 12.dp))
+            EstadoVazioVisual("Nenhuma cobrança registrada", "Registre contatos com o CD ou fornecedor para acompanhar os retornos.", Modifier.padding(top = 8.dp))
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 12.dp)) {
                 items(cobrancas, key = { it.id }) { item ->
