@@ -125,7 +125,6 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f)
                         .verticalScroll(rememberScrollState())
                 ) {
                     Spacer(modifier = Modifier.height(12.dp))
@@ -343,7 +342,6 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                         }
                     }
                     Spacer(Modifier.height(12.dp))
-                }
 
                     val semAssinatura = remanejos.filter { it.assinaturaBase64.isBlank() }.sortedBy { it.dataRegistro }
                     val ocorrenciasPendentes = ocorrenciasAbertas.filter { it.status.equals("PENDENTE", true) }
@@ -385,6 +383,7 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                             }
                         }
                     }
+                }
             } else if (telaSelecionada == 1) {
                 RemanejosScreen(db = db)
             } else if (telaSelecionada == 7) {
