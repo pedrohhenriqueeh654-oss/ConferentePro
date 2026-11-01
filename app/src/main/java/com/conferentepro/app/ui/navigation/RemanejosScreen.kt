@@ -147,6 +147,12 @@ fun RemanejosScreen(db: AppDatabase) {
                                     Spacer(Modifier.height(5.dp))
                                     Text("${item.filialSaida}  →  ${item.filialDestino}", color = RemanejoNavy)
                                     Text("Retirado por: ${item.retiradoPor}", color = Color.Gray, style = MaterialTheme.typography.bodySmall)
+                                    Text(
+                                        if (item.assinaturaBase64.isBlank()) "○ NÃO ASSINADO" else "✓ ASSINADO",
+                                        color = if (item.assinaturaBase64.isBlank()) Color(0xFFB45309) else Color(0xFF16834A),
+                                        fontWeight = FontWeight.Bold,
+                                        style = MaterialTheme.typography.labelSmall
+                                    )
                                     Text("Toque para abrir comprovante", color = RemanejoAccent, style = MaterialTheme.typography.labelSmall)
                                 }
                             }
@@ -169,6 +175,7 @@ private fun RemanejoForm(
     var destino by remember { mutableStateOf("") }
     var pessoa by remember { mutableStateOf("") }
     var observacoes by remember { mutableStateOf("") }
+    var assinarAgora by remember { mutableStateOf(false) }
     val pontos = remember { mutableStateListOf<Offset>() }
     var largura by remember { mutableFloatStateOf(1f) }
     var altura by remember { mutableFloatStateOf(1f) }
@@ -199,7 +206,7 @@ private fun RemanejoForm(
         }
         if (modoLote) {
             Text(
-                "${numerosValidos.size} NF(s) identificada(s). Uma assinatura será aplicada a todas.",
+                "${numerosValidos.size} NF(s) identificada(s).",
                 color = RemanejoAccent,
                 style = MaterialTheme.typography.labelSmall
             )
@@ -213,42 +220,48 @@ private fun RemanejoForm(
         Spacer(Modifier.height(7.dp))
         OutlinedTextField(observacoes, { observacoes = it }, Modifier.fillMaxWidth(), label = { Text("Observações (opcional)") }, minLines = 2, maxLines = 3)
         Spacer(Modifier.height(10.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("ASSINATURA DE QUEM RETIROU *", color = RemanejoNavy, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
-            TextButton(onClick = { pontos.clear() }) { Text("Limpar") }
-        }
-        Canvas(
-            Modifier.fillMaxWidth().height(112.dp)
-                .background(Color.White, RoundedCornerShape(10.dp))
-                .pointerInput(Unit) {
-                    detectDragGestures(
-                        onDragStart = { p -> pontos.add(p); largura = size.width.toFloat(); altura = size.height.toFloat() },
-                        onDrag = { change, _ -> pontos.add(change.position); change.consume() }
-                    )
-                }
-                .pointerInput(Unit) {
-                    detectTapGestures { p -> pontos.add(p); largura = size.width.toFloat(); altura = size.height.toFloat() }
-                }
-        ) {
-            drawLine(Color.LightGray, Offset(8f, size.height - 14f), Offset(size.width - 8f, size.height - 14f), 1.dp.toPx())
-            if (pontos.size > 1) {
-                val path = Path().apply {
-                    moveTo(pontos.first().x, pontos.first().y)
-                    pontos.drop(1).forEach { lineTo(it.x, it.y) }
-                }
-                drawPath(path, RemanejoNavy, style = Stroke(width = 2.8.dp.toPx()))
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(checked = assinarAgora, onCheckedChange = { assinarAgora = it; if (!it) pontos.clear() })
+            Column(Modifier.weight(1f)) {
+                Text("Assinar agora", color = RemanejoNavy, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
+                Text("Desmarcado: o remanejo será salvo como NÃO ASSINADO.", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
             }
+            if (assinarAgora) TextButton(onClick = { pontos.clear() }) { Text("Limpar") }
         }
-        Text("Assine com o dedo no campo acima.", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
+        if (assinarAgora) {
+            Canvas(
+                Modifier.fillMaxWidth().height(112.dp)
+                    .background(Color.White, RoundedCornerShape(10.dp))
+                    .pointerInput(Unit) {
+                        detectDragGestures(
+                            onDragStart = { p -> pontos.add(p); largura = size.width.toFloat(); altura = size.height.toFloat() },
+                            onDrag = { change, _ -> pontos.add(change.position); change.consume() }
+                        )
+                    }
+                    .pointerInput(Unit) {
+                        detectTapGestures { p -> pontos.add(p); largura = size.width.toFloat(); altura = size.height.toFloat() }
+                    }
+            ) {
+                drawLine(Color.LightGray, Offset(8f, size.height - 14f), Offset(size.width - 8f, size.height - 14f), 1.dp.toPx())
+                if (pontos.size > 1) {
+                    val path = Path().apply {
+                        moveTo(pontos.first().x, pontos.first().y)
+                        pontos.drop(1).forEach { lineTo(it.x, it.y) }
+                    }
+                    drawPath(path, RemanejoNavy, style = Stroke(width = 2.8.dp.toPx()))
+                }
+            }
+            Text("Assine com o dedo no campo acima.", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
+        }
         Spacer(Modifier.height(10.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedButton(onClick = onCancel, modifier = Modifier.weight(1f)) { Text("Cancelar") }
             Button(
                 onClick = {
-                    val assinatura = criarAssinaturaBase64(pontos.toList(), largura, altura)
+                    val assinatura = if (assinarAgora && assinaturaValida) criarAssinaturaBase64(pontos.toList(), largura, altura) else ""
                     onSave(numerosValidos, origem, destino, pessoa, assinatura, observacoes)
                 },
-                enabled = numerosValidos.isNotEmpty() && origem.isNotBlank() && destino.isNotBlank() && pessoa.isNotBlank() && assinaturaValida,
+                enabled = numerosValidos.isNotEmpty() && origem.isNotBlank() && destino.isNotBlank() && pessoa.isNotBlank() && (!assinarAgora || assinaturaValida),
                 modifier = Modifier.weight(1f),
                 colors = ButtonDefaults.buttonColors(containerColor = RemanejoAccent)
             ) { Text("Salvar") }
@@ -273,15 +286,25 @@ private fun RemanejoDetalhe(item: RemanejoEntity, onBack: () -> Unit, onShare: (
                 CampoComprovante("RETIRADO POR", item.retiradoPor)
                 CampoComprovante("DATA E HORA", formatarData(item.dataRegistro))
                 if (item.observacoes.isNotBlank()) CampoComprovante("OBSERVAÇÕES", item.observacoes)
-                Text("ASSINATURA", color = Color.Gray, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-                val bytes = remember(item.assinaturaBase64) { Base64.decode(item.assinaturaBase64, Base64.DEFAULT) }
-                val bitmap = remember(bytes) { android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size) }
-                if (bitmap != null) {
+                Text(
+                    if (item.assinaturaBase64.isBlank()) "STATUS: NÃO ASSINADO" else "STATUS: ASSINADO",
+                    color = if (item.assinaturaBase64.isBlank()) Color(0xFFB45309) else Color(0xFF16834A),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                if (item.assinaturaBase64.isNotBlank()) {
+                    Text("ASSINATURA", color = Color.Gray, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                    val bytes = remember(item.assinaturaBase64) { Base64.decode(item.assinaturaBase64, Base64.DEFAULT) }
+                    val bitmap = remember(bytes) { android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size) }
+                    if (bitmap != null) {
                     androidx.compose.foundation.Image(
                         bitmap = bitmap.asImageBitmap(),
                         contentDescription = "Assinatura de quem retirou",
                         modifier = Modifier.fillMaxWidth().height(76.dp)
                     )
+                    }
+                } else {
+                    Text("Este remanejo foi registrado sem assinatura digital.", color = Color.Gray, style = MaterialTheme.typography.bodySmall)
                 }
                 Spacer(Modifier.weight(1f))
                 Text("Comprovante gerado pelo Conferente PRO", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
@@ -359,16 +382,21 @@ private fun compartilharComprovante(context: android.content.Context, item: Rema
     field("Retirado por", item.retiradoPor)
     field("Data e hora", formatarData(item.dataRegistro))
     if (item.observacoes.isNotBlank()) field("Observações", item.observacoes)
-    canvas.drawText("ASSINATURA", 40f, y, labelPaint)
-    y += 12f
-    val signatureBytes = Base64.decode(item.assinaturaBase64, Base64.DEFAULT)
-    val signature = android.graphics.BitmapFactory.decodeByteArray(signatureBytes, 0, signatureBytes.size)
-    if (signature != null) {
-        val dest = android.graphics.Rect(40, y.toInt(), 330, (y + 95f).toInt())
-        canvas.drawBitmap(signature, null, dest, Paint(Paint.ANTI_ALIAS_FLAG))
-        signature.recycle()
+    if (item.assinaturaBase64.isBlank()) {
+        canvas.drawText("STATUS: NAO ASSINADO", 40f, y, labelPaint)
+        y += 35f
+    } else {
+        canvas.drawText("ASSINATURA", 40f, y, labelPaint)
+        y += 12f
+        val signatureBytes = Base64.decode(item.assinaturaBase64, Base64.DEFAULT)
+        val signature = android.graphics.BitmapFactory.decodeByteArray(signatureBytes, 0, signatureBytes.size)
+        if (signature != null) {
+            val dest = android.graphics.Rect(40, y.toInt(), 330, (y + 95f).toInt())
+            canvas.drawBitmap(signature, null, dest, Paint(Paint.ANTI_ALIAS_FLAG))
+            signature.recycle()
+        }
+        y += 125f
     }
-    y += 125f
     canvas.drawLine(40f, y, 555f, y, linePaint)
     canvas.drawText("Documento emitido pelo aplicativo Conferente PRO.", 40f, y + 24f, labelPaint)
     document.finishPage(page)
