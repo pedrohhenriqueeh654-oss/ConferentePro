@@ -62,6 +62,19 @@ fun RelatoriosScreen(db: AppDatabase) {
                 }
             }
             item {
+                Text("DETALHAMENTO DE AVARIAS", color = AzulMarinho, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            }
+            if (avarias.isEmpty()) {
+                item { Text("Nenhuma avaria registrada.", color = Color.Gray, fontSize = 13.sp) }
+            } else {
+                items(avarias, key = { "avaria-${it.id}" }) { item ->
+                    AvariaRelatorioItem(
+                        item = item,
+                        nomeProduto = nomesProdutos[item.produtoEan]?.nome ?: "Produto não identificado"
+                    )
+                }
+            }
+            item {
                 Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
                     Column(Modifier.padding(14.dp)) {
                         Row {
@@ -117,6 +130,21 @@ private fun RelatorioCard(
             Text(ocorrencias.toString(), color = AzulMarinho, fontSize = 28.sp, fontWeight = FontWeight.Bold)
             Text(titulo, color = cor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
             Text("$unidades unidade(s)", color = Color.Gray, fontSize = 11.sp)
+        }
+    }
+}
+
+@Composable
+private fun AvariaRelatorioItem(item: OcorrenciaProdutoEntity, nomeProduto: String) {
+    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Text("AVARIA", color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold, fontSize = 11.sp)
+            Text(nomeProduto, color = AzulMarinho, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            Text("EAN: ${item.produtoEan}", color = AzulMarinho, fontWeight = FontWeight.SemiBold)
+            Text("Quantidade: ${item.quantidade} ${item.unidade}", fontSize = 12.sp)
+            Text("Registrado em: ${SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("pt", "BR")).format(Date(item.dataRegistro))}", fontSize = 11.sp, color = Color.Gray)
+            Text("Destino: ${item.destino}", color = Color.Gray, fontSize = 11.sp)
+            if (item.lote.isNotBlank()) Text("Lote: ${item.lote}", color = Color.Gray, fontSize = 11.sp)
         }
     }
 }
