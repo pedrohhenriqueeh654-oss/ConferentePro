@@ -330,18 +330,18 @@ private fun RemanejoForm(
         Spacer(Modifier.height(7.dp))
         OutlinedTextField(destino, { destino = it }, Modifier.fillMaxWidth(), label = { Text("Filial de destino *") }, singleLine = true)
         Spacer(Modifier.height(7.dp))
-        OutlinedTextField(pessoa, { pessoa = it }, Modifier.fillMaxWidth(), label = { Text("Quem retirou *") }, singleLine = true)
-        Spacer(Modifier.height(7.dp))
         OutlinedTextField(observacoes, { observacoes = it }, Modifier.fillMaxWidth(), label = { Text("Observações (opcional)") }, minLines = 2, maxLines = 3)
         Spacer(Modifier.height(10.dp))
+        Text("ASSINATURA", color = RemanejoNavy, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(checked = assinarAgora, onCheckedChange = { assinarAgora = it; if (!it) pontos.clear() })
-            Column(Modifier.weight(1f)) {
-                Text("Assinar agora", color = RemanejoNavy, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
-                Text("Desmarcado: o remanejo será salvo como NÃO ASSINADO.", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
-            }
-            if (assinarAgora) TextButton(onClick = { pontos.clear() }) { Text("Limpar") }
+            RadioButton(selected = assinarAgora, onClick = { assinarAgora = true })
+            Text("Assinar agora", color = RemanejoNavy, style = MaterialTheme.typography.bodyMedium)
+            Spacer(Modifier.width(12.dp))
+            RadioButton(selected = !assinarAgora, onClick = { assinarAgora = false; pontos.clear() })
+            Text("Assinar depois", color = RemanejoNavy, style = MaterialTheme.typography.bodyMedium)
         }
+        Text(if (assinarAgora) "Faça sua assinatura no campo abaixo para salvar o comprovante." else "O comprovante será salvo como NÃO ASSINADO e poderá ser assinado depois.", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
+        if (assinarAgora) TextButton(onClick = { pontos.clear() }) { Text("Limpar assinatura") }
         if (assinarAgora) {
             Canvas(
                 Modifier.fillMaxWidth().height(112.dp)
@@ -373,9 +373,9 @@ private fun RemanejoForm(
             Button(
                 onClick = {
                     val assinatura = if (assinarAgora && assinaturaValida) criarAssinaturaBase64(pontos.toList(), largura, altura) else ""
-                    onSave(numerosValidos, origem, destino, pessoa, assinatura, observacoes)
+                    onSave(numerosValidos, origem, destino, "", assinatura, observacoes)
                 },
-                enabled = numerosValidos.isNotEmpty() && origem.isNotBlank() && destino.isNotBlank() && pessoa.isNotBlank() && (!assinarAgora || assinaturaValida),
+                enabled = numerosValidos.isNotEmpty() && origem.isNotBlank() && destino.isNotBlank() && (!assinarAgora || assinaturaValida),
                 modifier = Modifier.weight(1f),
                 colors = ButtonDefaults.buttonColors(containerColor = RemanejoAccent)
             ) { Text("Salvar") }
