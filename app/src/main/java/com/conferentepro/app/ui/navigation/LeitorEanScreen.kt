@@ -6,7 +6,6 @@ import com.google.gson.JsonParser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.InputStreamReader
-import java.util.zip.GZIPInputStream
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -79,7 +78,7 @@ fun LeitorEanScreen() {
         carregandoBaseTratativas = true
         val resultado = withContext(Dispatchers.IO) { runCatching { TratativasRoRepository.carregar(context) } }
         resultado.onSuccess { baseTratativas = it; erroBaseTratativas = null }
-            .onFailure { erroBaseTratativas = "Base de tratativas RO indisponível: arquivo Tratativas_RO.json.gz não encontrado ou inválido." }
+            .onFailure { erroBaseTratativas = "Base de tratativas RO indisponível: arquivo Tratativas_RO.json não encontrado ou inválido." }
         carregandoBaseTratativas = false
     }
 
@@ -362,10 +361,8 @@ private class TratativasRoRepository private constructor(private val produtosPor
     companion object {
         suspend fun carregar(context: Context): TratativasRoRepository {
             val json = withContext(Dispatchers.IO) {
-                context.assets.open("Tratativas_RO.json.gz").use { bruto ->
-                    GZIPInputStream(bruto).use { gzip ->
-                        InputStreamReader(gzip, Charsets.UTF_8).use { reader -> JsonParser.parseReader(reader).asJsonObject }
-                    }
+                context.assets.open("Tratativas_RO.json").use { bruto ->
+                    InputStreamReader(bruto, Charsets.UTF_8).use { reader -> JsonParser.parseReader(reader).asJsonObject }
                 }
             }
             val eanRows = json.getAsJsonArray("eanRows").map { it.asJsonArray.map { cell -> if (cell.isJsonNull) "" else cell.asString.trim() } }
