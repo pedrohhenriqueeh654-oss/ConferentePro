@@ -1,5 +1,6 @@
 
 name: Gerar APK do Conferente Pro
+# Rebuild após alinhar o leitor ao asset Tratativas_RO.json.gz
 
 on:
   workflow_dispatch:
