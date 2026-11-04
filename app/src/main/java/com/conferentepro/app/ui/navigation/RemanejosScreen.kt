@@ -1,6 +1,13 @@
 package com.conferentepro.app.ui.navigation
 
 import android.content.Intent
+import android.app.Activity
+import android.content.pm.ActivityInfo
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import android.graphics.Bitmap
 import android.graphics.Paint
 import android.graphics.Typeface
@@ -267,34 +274,7 @@ fun RemanejosScreen(db: AppDatabase) {
 
 @Composable
 private fun AssinaturaLoteDialog(quantidade: Int, onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
-    val pontos = remember { mutableStateListOf<Offset>() }
-    var largura by remember { mutableFloatStateOf(1f) }
-    var altura by remember { mutableFloatStateOf(1f) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Assinar $quantidade remanejo(s)") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Desenhe sua assinatura uma única vez. Ela será aplicada aos registros selecionados.")
-                Canvas(Modifier.fillMaxWidth().height(130.dp).background(Color.White, RoundedCornerShape(10.dp))
-                    .pointerInput(Unit) {
-                        detectDragGestures(onDragStart = { p -> pontos.add(p); largura = size.width.toFloat(); altura = size.height.toFloat() },
-                            onDrag = { change, _ -> pontos.add(change.position); change.consume() })
-                    }
-                    .pointerInput(Unit) { detectTapGestures { p -> pontos.add(p); largura = size.width.toFloat(); altura = size.height.toFloat() } }
-                ) {
-                    drawLine(Color.LightGray, Offset(8f, size.height - 14f), Offset(size.width - 8f, size.height - 14f), 1.dp.toPx())
-                    if (pontos.size > 1) {
-                        val path = Path().apply { moveTo(pontos.first().x, pontos.first().y); pontos.drop(1).forEach { lineTo(it.x, it.y) } }
-                        drawPath(path, RemanejoNavy, style = Stroke(width = 2.8.dp.toPx()))
-                    }
-                }
-                TextButton(onClick = { pontos.clear() }) { Text("Limpar assinatura") }
-            }
-        },
-        confirmButton = { Button(onClick = { onConfirm(criarAssinaturaBase64(pontos.toList(), largura, altura)) }, enabled = pontos.size >= 2, colors = ButtonDefaults.buttonColors(containerColor = RemanejoAccent)) { Text("Aplicar assinatura") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } }
-    )
+    AssinaturaTelaCheia("Assinar $quantidade remanejo(s)", "Desenhe uma vez. A assinatura será aplicada a todos os registros selecionados.", "Aplicar assinatura", onDismiss, onConfirm)
 }
 
 @Composable
@@ -308,10 +288,9 @@ private fun RemanejoForm(
     var pessoa by remember { mutableStateOf("") }
     var observacoes by remember { mutableStateOf("") }
     var assinarAgora by remember { mutableStateOf(false) }
-    val pontos = remember { mutableStateListOf<Offset>() }
-    var largura by remember { mutableFloatStateOf(1f) }
-    var altura by remember { mutableFloatStateOf(1f) }
-    val assinaturaValida = pontos.size >= 2
+    var assinaturaCapturada by remember { mutableStateOf("") }
+    var abrirAssinatura by remember { mutableStateOf(false) }
+    val assinaturaValida = assinaturaCapturada.isNotBlank()
 
     Column(Modifier.fillMaxSize()) {
         Text("NOVO COMPROVANTE", color = RemanejoNavy, fontWeight = FontWeight.Bold)
@@ -337,42 +316,22 @@ private fun RemanejoForm(
             RadioButton(selected = assinarAgora, onClick = { assinarAgora = true })
             Text("Assinar agora", color = RemanejoNavy, style = MaterialTheme.typography.bodyMedium)
             Spacer(Modifier.width(12.dp))
-            RadioButton(selected = !assinarAgora, onClick = { assinarAgora = false; pontos.clear() })
+            RadioButton(selected = !assinarAgora, onClick = { assinarAgora = false; assinaturaCapturada = "" })
             Text("Assinar depois", color = RemanejoNavy, style = MaterialTheme.typography.bodyMedium)
         }
         Text(if (assinarAgora) "Faça sua assinatura no campo abaixo para salvar o comprovante." else "O comprovante será salvo como NÃO ASSINADO e poderá ser assinado depois.", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
-        if (assinarAgora) TextButton(onClick = { pontos.clear() }) { Text("Limpar assinatura") }
         if (assinarAgora) {
-            Canvas(
-                Modifier.fillMaxWidth().height(112.dp)
-                    .background(Color.White, RoundedCornerShape(10.dp))
-                    .pointerInput(Unit) {
-                        detectDragGestures(
-                            onDragStart = { p -> pontos.add(p); largura = size.width.toFloat(); altura = size.height.toFloat() },
-                            onDrag = { change, _ -> pontos.add(change.position); change.consume() }
-                        )
-                    }
-                    .pointerInput(Unit) {
-                        detectTapGestures { p -> pontos.add(p); largura = size.width.toFloat(); altura = size.height.toFloat() }
-                    }
-            ) {
-                drawLine(Color.LightGray, Offset(8f, size.height - 14f), Offset(size.width - 8f, size.height - 14f), 1.dp.toPx())
-                if (pontos.size > 1) {
-                    val path = Path().apply {
-                        moveTo(pontos.first().x, pontos.first().y)
-                        pontos.drop(1).forEach { lineTo(it.x, it.y) }
-                    }
-                    drawPath(path, RemanejoNavy, style = Stroke(width = 2.8.dp.toPx()))
-                }
+            OutlinedButton(onClick = { abrirAssinatura = true }, modifier = Modifier.fillMaxWidth()) {
+                Text(if (assinaturaValida) "Refazer assinatura" else "Abrir assinatura em tela cheia")
             }
-            Text("Assine com o dedo no campo acima.", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
+            if (assinaturaValida) Text("Assinatura capturada.", color = Color(0xFF16834A), style = MaterialTheme.typography.labelSmall)
         }
         Spacer(Modifier.height(10.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedButton(onClick = onCancel, modifier = Modifier.weight(1f)) { Text("Cancelar") }
             Button(
                 onClick = {
-                    val assinatura = if (assinarAgora && assinaturaValida) criarAssinaturaBase64(pontos.toList(), largura, altura) else ""
+                    val assinatura = if (assinarAgora && assinaturaValida) assinaturaCapturada else ""
                     onSave(numerosValidos, origem, destino, "", assinatura, observacoes)
                 },
                 enabled = numerosValidos.isNotEmpty() && origem.isNotBlank() && destino.isNotBlank() && (!assinarAgora || assinaturaValida),
@@ -381,53 +340,80 @@ private fun RemanejoForm(
             ) { Text("Salvar") }
         }
     }
+    if (abrirAssinatura) {
+        AssinaturaTelaCheia("Assinatura do remanejo", "Assine com o dedo. Levantar e tocar novamente inicia outro traço.", "Usar assinatura",
+            onDismiss = { abrirAssinatura = false },
+            onConfirm = { assinaturaCapturada = it; abrirAssinatura = false })
+    }
 }
 
 @Composable
 private fun AssinaturaIndividualDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
-    val pontos = remember { mutableStateListOf<Offset>() }
+    AssinaturaTelaCheia("Assinar remanejo", "Desenhe sua assinatura para este comprovante.", "Salvar assinatura", onDismiss, onConfirm)
+}
+
+@Composable
+private fun AssinaturaTelaCheia(
+    titulo: String, descricao: String, confirmarTexto: String,
+    onDismiss: () -> Unit, onConfirm: (String) -> Unit
+) {
+    val activity = LocalContext.current as? Activity
+    val strokes = remember { mutableStateListOf<MutableList<Offset>>() }
     var largura by remember { mutableFloatStateOf(1f) }
     var altura by remember { mutableFloatStateOf(1f) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Assinar remanejo") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Desenhe sua assinatura para este comprovante.")
-                Canvas(
-                    Modifier.fillMaxWidth().height(130.dp)
-                        .background(Color.White, RoundedCornerShape(10.dp))
-                        .pointerInput(Unit) {
-                            detectDragGestures(
-                                onDragStart = { p -> pontos.add(p); largura = size.width.toFloat(); altura = size.height.toFloat() },
-                                onDrag = { change, _ -> pontos.add(change.position); change.consume() }
-                            )
-                        }
-                        .pointerInput(Unit) {
-                            detectTapGestures { p -> pontos.add(p); largura = size.width.toFloat(); altura = size.height.toFloat() }
-                        }
+    DisposableEffect(activity) {
+        val oldOrientation = activity?.requestedOrientation ?: ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        val window = activity?.window
+        val controller = window?.let { WindowInsetsControllerCompat(it, it.decorView) }
+        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        if (window != null) {
+            WindowCompat.setDecorFitsSystemWindows(window, false)
+            controller?.hide(WindowInsetsCompat.Type.systemBars())
+            controller?.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+        onDispose {
+            if (window != null) {
+                controller?.show(WindowInsetsCompat.Type.systemBars())
+                WindowCompat.setDecorFitsSystemWindows(window, true)
+            }
+            activity?.requestedOrientation = oldOrientation
+        }
+    }
+    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        Surface(Modifier.fillMaxSize(), color = Color(0xFFF4F7F6)) {
+            Column(Modifier.fillMaxSize().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(titulo, color = RemanejoNavy, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Text(descricao, color = Color.DarkGray, style = MaterialTheme.typography.bodyMedium)
+                Canvas(Modifier.fillMaxWidth().weight(1f).background(Color.White, RoundedCornerShape(12.dp))
+                    .pointerInput(Unit) {
+                        detectDragGestures(onDragStart = { p ->
+                            largura = size.width.toFloat(); altura = size.height.toFloat(); strokes.add(mutableListOf(p))
+                        }, onDrag = { change, _ -> strokes.lastOrNull()?.add(change.position); change.consume() })
+                    }
+                    .pointerInput(Unit) { detectTapGestures { p ->
+                        largura = size.width.toFloat(); altura = size.height.toFloat(); strokes.add(mutableListOf(p))
+                    } }
                 ) {
-                    drawLine(Color.LightGray, Offset(8f, size.height - 14f), Offset(size.width - 8f, size.height - 14f), 1.dp.toPx())
-                    if (pontos.size > 1) {
-                        val path = Path().apply {
-                            moveTo(pontos.first().x, pontos.first().y)
-                            pontos.drop(1).forEach { lineTo(it.x, it.y) }
-                        }
-                        drawPath(path, RemanejoNavy, style = Stroke(width = 2.8.dp.toPx()))
+                    drawLine(Color.LightGray, Offset(12f, size.height - 20f), Offset(size.width - 12f, size.height - 20f), 1.dp.toPx())
+                    strokes.forEach { stroke ->
+                        if (stroke.size >= 2) {
+                            val path = Path().apply { moveTo(stroke.first().x, stroke.first().y); stroke.drop(1).forEach { lineTo(it.x, it.y) } }
+                            drawPath(path, RemanejoNavy, style = Stroke(width = 3.5.dp.toPx()))
+                        } else if (stroke.size == 1) drawCircle(RemanejoNavy, 1.8.dp.toPx(), stroke.first())
                     }
                 }
-                TextButton(onClick = { pontos.clear() }) { Text("Limpar assinatura") }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    OutlinedButton(onClick = { strokes.clear() }, modifier = Modifier.weight(1f).height(52.dp)) { Text("Limpar") }
+                    OutlinedButton(onClick = onDismiss, modifier = Modifier.weight(1f).height(52.dp)) { Text("Cancelar") }
+                    Button(onClick = {
+                        val flat = strokes.flatMapIndexed { index, stroke -> if (index == 0) stroke else listOf(Offset(Float.NaN, Float.NaN)) + stroke }
+                        onConfirm(criarAssinaturaBase64ComTracos(flat, largura, altura))
+                    }, enabled = strokes.isNotEmpty(), modifier = Modifier.weight(1f).height(52.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = RemanejoAccent)) { Text(confirmarTexto) }
+                }
             }
-        },
-        confirmButton = {
-            Button(
-                onClick = { onConfirm(criarAssinaturaBase64(pontos.toList(), largura, altura)) },
-                enabled = pontos.size >= 2,
-                colors = ButtonDefaults.buttonColors(containerColor = RemanejoAccent)
-            ) { Text("Salvar assinatura") }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } }
-    )
+        }
+    }
 }
 
 @Composable
@@ -499,6 +485,30 @@ private fun CampoComprovante(rotulo: String, valor: String) {
         Text(rotulo, color = Color.Gray, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
         Text(valor, color = RemanejoNavy, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
     }
+}
+
+private fun criarAssinaturaBase64ComTracos(pontos: List<Offset>, largura: Float, altura: Float): String {
+    val w = 1800; val h = 900
+    val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+    val canvas = android.graphics.Canvas(bitmap)
+    canvas.drawColor(android.graphics.Color.WHITE)
+    val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = android.graphics.Color.rgb(18, 59, 70); strokeWidth = 7f
+        style = Paint.Style.STROKE; strokeCap = Paint.Cap.ROUND; strokeJoin = Paint.Join.ROUND
+    }
+    val sx = w / largura.coerceAtLeast(1f); val sy = h / altura.coerceAtLeast(1f)
+    var path: android.graphics.Path? = null
+    pontos.forEach { p ->
+        if (p.x.isNaN() || p.y.isNaN()) { path?.let { canvas.drawPath(it, paint) }; path = null }
+        else {
+            val x = p.x * sx; val y = p.y * sy
+            if (path == null) path = android.graphics.Path().apply { moveTo(x, y) } else path?.lineTo(x, y)
+        }
+    }
+    path?.let { canvas.drawPath(it, paint) }
+    val stream = java.io.ByteArrayOutputStream()
+    bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream); bitmap.recycle()
+    return Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
 }
 
 private fun criarAssinaturaBase64(pontos: List<Offset>, largura: Float, altura: Float): String {
