@@ -72,6 +72,8 @@ jobs:
           with gzip.open(target, "wt", encoding="utf-8", newline="") as output:
               json.dump(payload, output, ensure_ascii=False, separators=(",", ":"))
           print(f"Base RO gerada: {len(ean_rows)} registros EAN e {len(trat_rows)} registros de tratativa; {os.path.getsize(target)} bytes compactados")
+          # A planilha-fonte não precisa ser empacotada no APK; somente a base convertida.
+          os.remove(source)
           PY
 
       - name: Configurar Java 17
