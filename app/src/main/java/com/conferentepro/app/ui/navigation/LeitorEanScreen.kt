@@ -1,6 +1,12 @@
 package com.conferentepro.app.ui.navigation
 
 import android.Manifest
+import android.content.Context
+import com.google.gson.JsonParser
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.InputStreamReader
+import java.util.zip.GZIPInputStream
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -51,6 +57,9 @@ fun LeitorEanScreen() {
     var produto by remember { mutableStateOf<ProdutoEntity?>(null) }
     var verificando by remember { mutableStateOf(false) }
     var erro by remember { mutableStateOf<String?>(null) }
+    var baseTratativas by remember { mutableStateOf<TratativasRoRepository?>(null) }
+    var erroBaseTratativas by remember { mutableStateOf<String?>(null) }
+    var carregandoBaseTratativas by remember { mutableStateOf(true) }
     var nome by remember { mutableStateOf("") }
     var sku by remember { mutableStateOf("") }
     var descricao by remember { mutableStateOf("") }
@@ -65,6 +74,18 @@ fun LeitorEanScreen() {
     var temPermissao by remember { mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) }
     val pedirPermissao = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { temPermissao = it }
     val historico by if (ean.isNotBlank() && produto != null) db.produtoDao().getOcorrencias(ean).collectAsState(initial = emptyList()) else remember { mutableStateOf(emptyList()) }
+
+    LaunchedEffect(Unit) {
+        carregandoBaseTratativas = true
+        val resultado = withContext(Dispatchers.IO) { runCatching { TratativasRoRepository.carregar(context) } }
+        resultado.onSuccess { baseTratativas = it; erroBaseTratativas = null }
+            .onFailure { erroBaseTratativas = "Base de tratativas RO indisponível: arquivo Tratativas_RO.json.gz não encontrado ou inválido." }
+        carregandoBaseTratativas = false
+    }
+
+    val resultadosTratativas = remember(ean, baseTratativas) {
+        if (ean.isBlank()) emptyList() else baseTratativas?.consultar(ean) ?: emptyList()
+    }
 
     LaunchedEffect(ean) {
         if (ean.isNotBlank()) {
@@ -170,8 +191,10 @@ fun LeitorEanScreen() {
                     ) { Icon(Icons.Default.Save, null); Spacer(Modifier.width(8.dp)); Text("Criar cadastro do produto") }
                 }
             }
+            CardTratativasRo(resultadosTratativas, carregandoBaseTratativas, erroBaseTratativas)
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.weight(1f)) {
+                item { CardTratativasRo(resultadosTratativas, carregandoBaseTratativas, erroBaseTratativas) }
                 item {
                     Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -327,4 +350,85 @@ private fun CameraEanPreview(
         }
     }
     AndroidView(factory = { previewView }, modifier = modifier)
+}
+
+
+private data class ProdutoTratativaRo(val ean: String, val codigo: String, val descricao: String, val grupo: String, val idFabricante: String, val fabricante: String)
+private data class DadosTratativaRo(val codigoFabricante: String, val fabricante: String, val comprador: String, val politicaTrocaFornecedor: String, val tipoNegociacao: String, val tipoSaida: String, val acao: String, val lojaCd: String)
+private data class ProdutoComTratativasRo(val produto: ProdutoTratativaRo, val tratativas: List<DadosTratativaRo>, val quantidadeRegistrosEan: Int)
+
+private class TratativasRoRepository private constructor(private val produtosPorEan: Map<String, List<ProdutoComTratativasRo>>) {
+    fun consultar(ean: String): List<ProdutoComTratativasRo> = produtosPorEan[ean.filter(Char::isDigit)].orEmpty()
+    companion object {
+        suspend fun carregar(context: Context): TratativasRoRepository {
+            val json = withContext(Dispatchers.IO) {
+                context.assets.open("Tratativas_RO.json.gz").use { bruto ->
+                    GZIPInputStream(bruto).use { gzip ->
+                        InputStreamReader(gzip, Charsets.UTF_8).use { reader -> JsonParser.parseReader(reader).asJsonObject }
+                    }
+                }
+            }
+            val eanRows = json.getAsJsonArray("eanRows").map { it.asJsonArray.map { cell -> if (cell.isJsonNull) "" else cell.asString.trim() } }
+            val tratRows = json.getAsJsonArray("tratRows").map { it.asJsonArray.map { cell -> if (cell.isJsonNull) "" else cell.asString.trim() } }
+            val tratamentosPorFabricante = tratRows.groupBy { it.getOrElse(0) { "" } }
+            val agrupados = eanRows.filter { it.getOrElse(0) { "" }.isNotBlank() }.groupBy { it[0] }
+            val resultado = agrupados.mapValues { (_, linhas) ->
+                linhas.distinct().map { linha ->
+                    val produto = ProdutoTratativaRo(linha.getOrElse(0) { "" }, linha.getOrElse(1) { "" }, linha.getOrElse(2) { "" }, linha.getOrElse(3) { "" }, linha.getOrElse(4) { "" }, linha.getOrElse(5) { "" })
+                    val tratativas = tratamentosPorFabricante[produto.idFabricante].orEmpty().distinct().map { t ->
+                        DadosTratativaRo(t.getOrElse(0) { "" }, t.getOrElse(1) { "" }, t.getOrElse(2) { "" }, t.getOrElse(3) { "" }, t.getOrElse(4) { "" }, t.getOrElse(5) { "" }, t.getOrElse(6) { "" }, t.getOrElse(7) { "" })
+                    }
+                    ProdutoComTratativasRo(produto, tratativas, linhas.size)
+                }
+            }
+            return TratativasRoRepository(resultado)
+        }
+    }
+}
+
+@Composable
+private fun CardTratativasRo(resultados: List<ProdutoComTratativasRo>, carregando: Boolean, erro: String?) {
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text("TRATATIVAS RO • PLANILHA", fontWeight = FontWeight.Bold, color = AzulMarinho)
+            when {
+                carregando -> LinearProgressIndicator(Modifier.fillMaxWidth())
+                erro != null -> Text(erro, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+                resultados.isEmpty() -> Text("Este EAN não foi localizado na base de tratativas RO.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                else -> {
+                    if (resultados.size > 1) Text("Atenção: existem ${resultados.size} registros distintos para este EAN. Confira todas as alternativas.", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    resultados.forEachIndexed { index, item ->
+                        if (resultados.size > 1) Text("REGISTRO ${index + 1}", fontWeight = FontWeight.Bold, color = AzulMarinho)
+                        val p = item.produto
+                        TextoCampoTratativaRo("Código", p.codigo)
+                        TextoCampoTratativaRo("Descrição", p.descricao)
+                        TextoCampoTratativaRo("Grupo", p.grupo)
+                        TextoCampoTratativaRo("ID fabricante", p.idFabricante)
+                        TextoCampoTratativaRo("Fabricante / laboratório", p.fabricante)
+                        if (item.quantidadeRegistrosEan > 1) Text("Planilha contém ${item.quantidadeRegistrosEan} linhas para este EAN.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        if (item.tratativas.isEmpty()) Text("Não foi encontrada tratativa para este ID de fabricante.", fontSize = 12.sp)
+                        else {
+                            if (item.tratativas.size > 1) Text("Há ${item.tratativas.size} registros distintos na Base Trat RO para este fabricante.", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            item.tratativas.forEachIndexed { tratIndex, t ->
+                                if (item.tratativas.size > 1) Text("TRATATIVA ${tratIndex + 1}", fontWeight = FontWeight.Bold, color = AzulMarinho)
+                                TextoCampoTratativaRo("Fabricante", t.fabricante)
+                                TextoCampoTratativaRo("Comprador", t.comprador)
+                                TextoCampoTratativaRo("Política de troca fornecedor", t.politicaTrocaFornecedor)
+                                TextoCampoTratativaRo("Tipo de negociação", t.tipoNegociacao)
+                                TextoCampoTratativaRo("Tipo de saída", t.tipoSaida)
+                                TextoCampoTratativaRo("Ação", t.acao)
+                                TextoCampoTratativaRo("LOJA/CD", t.lojaCd)
+                            }
+                        }
+                        if (index < resultados.lastIndex) HorizontalDivider()
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TextoCampoTratativaRo(rotulo: String, valor: String) {
+    if (valor.isNotBlank()) Text("$rotulo: $valor", fontSize = 12.sp)
 }
