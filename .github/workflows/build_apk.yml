@@ -18,6 +18,62 @@ jobs:
       - name: Baixar o projeto
         uses: actions/checkout@v4
 
+      - name: Preparar base de tratativas RO a partir da planilha
+        run: |
+          python3 -m pip install --disable-pip-version-check openpyxl==3.1.5
+          python3 - <<'PY'
+          import gzip, json, os
+          from openpyxl import load_workbook
+
+          source = "app/src/main/assets/Consulta_Tratativas_V4.4.2.xlsx"
+          target = "app/src/main/assets/Tratativas_RO.json.gz"
+          if not os.path.isfile(source):
+              raise SystemExit("Planilha Consulta_Tratativas_V4.4.2.xlsx não encontrada em app/src/main/assets")
+
+          wb = load_workbook(source, read_only=True, data_only=True)
+          required_sheets = ["EAN_RO", "Base Trat RO"]
+          missing = [name for name in required_sheets if name not in wb.sheetnames]
+          if missing:
+              raise SystemExit("Abas obrigatórias ausentes: " + ", ".join(missing))
+
+          def text_value(value):
+              if value is None:
+                  return ""
+              if isinstance(value, bool):
+                  return str(value)
+              if isinstance(value, int):
+                  return str(value)
+              if isinstance(value, float) and value.is_integer():
+                  return str(int(value))
+              return str(value).strip()
+
+          def read_selected(sheet_name, expected_headers):
+              ws = wb[sheet_name]
+              header = [text_value(v).strip() for v in next(ws.iter_rows(min_row=1, max_row=1, values_only=True))]
+              normalized = [h.casefold() for h in header]
+              indexes = []
+              for label in expected_headers:
+                  key = label.strip().casefold()
+                  if key not in normalized:
+                      raise SystemExit(f"Coluna obrigatória '{label}' não encontrada na aba '{sheet_name}'. Cabeçalhos: {header}")
+                  indexes.append(normalized.index(key))
+              rows = []
+              for raw in ws.iter_rows(min_row=2, values_only=True):
+                  selected = [text_value(raw[i]) if i < len(raw) else "" for i in indexes]
+                  if any(value.strip() for value in selected):
+                      rows.append(selected)
+              return rows
+
+          ean_rows = read_selected("EAN_RO", ["Barras", "Código", "Descrição", "Nome Grupo", "ID Fabricante", "Fabricante - Laboratório"])
+          trat_rows = read_selected("Base Trat RO", ["Cód. Fabricante", "Fabricante", "Comprador", "Policita de troca Fornecedor", "Tipo de Negociação", "Tipo de Saida", "Ação", "LOJA/CD"])
+          ean_rows = [row for row in ean_rows if row[0].strip()]
+          payload = {"eanRows": ean_rows, "tratRows": trat_rows}
+          os.makedirs(os.path.dirname(target), exist_ok=True)
+          with gzip.open(target, "wt", encoding="utf-8", newline="") as output:
+              json.dump(payload, output, ensure_ascii=False, separators=(",", ":"))
+          print(f"Base RO gerada: {len(ean_rows)} registros EAN e {len(trat_rows)} registros de tratativa; {os.path.getsize(target)} bytes compactados")
+          PY
+
       - name: Configurar Java 17
         uses: actions/setup-java@v4
         with:
