@@ -13,8 +13,8 @@ android {
         applicationId = "com.conferentepro.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 7
-        versionName = "1.2.4"
+        versionCode = 8
+        versionName = "1.2.5"
         vectorDrawables.useSupportLibrary = true
     }
 
