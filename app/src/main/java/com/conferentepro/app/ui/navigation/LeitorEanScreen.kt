@@ -80,7 +80,10 @@ fun LeitorEanScreen() {
         carregandoBaseTratativas = true
         val resultado = withContext(Dispatchers.IO) { runCatching { TratativasRoRepository.carregar(context) } }
         resultado.onSuccess { baseTratativas = it; erroBaseTratativas = null }
-            .onFailure { erroBaseTratativas = "Base de tratativas RO indisponível: não foi possível abrir ou interpretar Tratativas_RO.json.gz." }
+            .onFailure { falha ->
+                val detalhe = falha.message?.takeIf { it.isNotBlank() } ?: falha.javaClass.simpleName
+                erroBaseTratativas = "Base de tratativas RO indisponível. Detalhe: $detalhe"
+            }
         carregandoBaseTratativas = false
     }
 
@@ -363,11 +366,30 @@ private class TratativasRoRepository private constructor(private val produtosPor
     companion object {
         suspend fun carregar(context: Context): TratativasRoRepository {
             val json = withContext(Dispatchers.IO) {
-                context.assets.open("Tratativas_RO.json.gz").use { bruto ->
-                    GZIPInputStream(bruto).use { compactado ->
-                        InputStreamReader(compactado, Charsets.UTF_8).use { reader -> JsonParser.parseReader(reader).asJsonObject }
+                // Aceita o asset compactado e o JSON simples, detectando o formato pelo conteúdo.
+                val nomes = listOf("Tratativas_RO.json.gz", "Tratativas_RO.json")
+                var ultimaFalha: Exception? = null
+                var objeto: com.google.gson.JsonObject? = null
+                for (nomeArquivo in nomes) {
+                    try {
+                        context.assets.open(nomeArquivo).use { bruto ->
+                            val bytes = bruto.readBytes()
+                            val ehGzip = bytes.size >= 2 && bytes[0] == 0x1f.toByte() && bytes[1] == 0x8b.toByte()
+                            val conteudo = if (ehGzip) GZIPInputStream(bytes.inputStream()).use { it.readBytes() } else bytes
+                            val candidato = JsonParser.parseString(conteudo.toString(Charsets.UTF_8)).asJsonObject
+                            require(candidato.has("eanRows") && candidato.has("tratRows")) {
+                                "$nomeArquivo não contém eanRows e tratRows"
+                            }
+                            objeto = candidato
+                        }
+                        if (objeto != null) break
+                    } catch (e: Exception) {
+                        ultimaFalha = e
                     }
                 }
+                objeto ?: throw IllegalStateException(
+                    "Falha ao abrir a base JSON/GZIP: " + (ultimaFalha?.message ?: "arquivos ausentes")
+                )
             }
             val eanRows = json.getAsJsonArray("eanRows").map { it.asJsonArray.map { cell -> if (cell.isJsonNull) "" else cell.asString.trim() } }
             val tratRows = json.getAsJsonArray("tratRows").map { it.asJsonArray.map { cell -> if (cell.isJsonNull) "" else cell.asString.trim() } }
