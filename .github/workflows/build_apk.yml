@@ -69,6 +69,18 @@ jobs:
           trat_rows = read_selected("Base Trat RO", ["Cód. Fabricante", "Fabricante", "Comprador", "Policita de troca Fornecedor", "Tipo de Negociação", "Tipo de Saida", "Ação", "LOJA/CD"])
           ean_rows = [row for row in ean_rows if row[0].strip()]
           payload = {"eanRows": ean_rows, "tratRows": trat_rows}
+          # Teste de integridade obrigatório com EAN real já validado.
+          teste_ean = "7891317032470"
+          linha_ean = next((r for r in ean_rows if r[0].strip() == teste_ean), None)
+          if linha_ean is None:
+              raise SystemExit("TESTE FALHOU: EAN de validação ausente.")
+          id_fabricante = linha_ean[4].strip()
+          linha_tratativa = next((r for r in trat_rows if r[0].strip() == id_fabricante), None)
+          if linha_tratativa is None or not linha_tratativa[6].strip():
+              raise SystemExit("TESTE FALHOU: tratativa ou ação ausente para o EAN de validação.")
+          if "Emitir Nota de Perda na loja" not in linha_tratativa[6]:
+              raise SystemExit("TESTE FALHOU: ação divergente para o EAN de validação.")
+          print("TESTE OK: EAN " + teste_ean + " -> fabricante " + id_fabricante + " -> " + linha_tratativa[6])
           os.makedirs(os.path.dirname(target), exist_ok=True)
           with gzip.open(target, "wt", encoding="utf-8", newline="") as output:
               json.dump(payload, output, ensure_ascii=False, separators=(",", ":"))
