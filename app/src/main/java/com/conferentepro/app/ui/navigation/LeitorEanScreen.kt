@@ -421,8 +421,18 @@ private fun CardTratativasRo(resultados: List<ProdutoComTratativasRo>, carregand
                                 val fundo = when { semNegociacao -> MaterialTheme.colorScheme.errorContainer; envioCd || recolhimento -> Color(0xFFE5F5EA); else -> MaterialTheme.colorScheme.surfaceVariant }
                                 Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = fundo)) {
                                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                                        Text("AÇÃO / TRATATIVA", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = destaque)
-                                        Text(t.acao.ifBlank { t.politicaTrocaFornecedor.ifBlank { t.tipoNegociacao } }, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = destaque)
+                                        Text("DECISÃO", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = destaque)
+                                        val tituloDecisao = when {
+                                            semNegociacao -> "SEM NEGOCIAÇÃO"
+                                            envioCd -> "ENVIAR PARA O CD"
+                                            recolhimento -> "FORNECEDOR FARÁ RECOLHIMENTO NA LOJA"
+                                            else -> t.politicaTrocaFornecedor.ifBlank { t.tipoNegociacao }
+                                        }
+                                        Text(tituloDecisao, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = destaque)
+                                        if (t.acao.isNotBlank()) {
+                                            Text("AÇÃO", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                            Text(t.acao, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
+                                        }
                                     }
                                 }
                             }
