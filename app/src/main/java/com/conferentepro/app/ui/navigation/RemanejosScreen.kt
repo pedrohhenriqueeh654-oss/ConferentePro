@@ -392,7 +392,7 @@ private fun AssinaturaTelaCheia(
                         }, onDrag = { change, _ -> strokes.lastOrNull()?.add(change.position); change.consume() })
                     }
                     .pointerInput(Unit) { detectTapGestures { p ->
-                        largura = size.width.toFloat(); altura = size.height.toFloat(); strokes.add(mutableListOf(p))
+                        largura = size.width.toFloat(); altura = size.height.toFloat(); strokes.add(mutableStateListOf(p))
                     } }
                 ) {
                     drawLine(Color.LightGray, Offset(12f, size.height - 20f), Offset(size.width - 12f, size.height - 20f), 1.dp.toPx())
