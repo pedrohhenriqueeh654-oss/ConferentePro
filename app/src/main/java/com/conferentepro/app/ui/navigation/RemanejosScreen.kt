@@ -407,8 +407,21 @@ private fun AssinaturaTelaCheia(
                     OutlinedButton(onClick = { strokes.clear() }, modifier = Modifier.weight(1f).height(52.dp)) { Text("Limpar") }
                     OutlinedButton(onClick = onDismiss, modifier = Modifier.weight(1f).height(52.dp)) { Text("Cancelar") }
                     Button(onClick = {
-                        val flat = strokes.flatMapIndexed { index, stroke -> if (index == 0) stroke else listOf(Offset(Float.NaN, Float.NaN)) + stroke }
-                        onConfirm(criarAssinaturaBase64ComTracos(flat, largura, altura))
+                        try {
+                            val flat = strokes.flatMapIndexed { index, stroke ->
+                                if (index == 0) stroke.toList()
+                                else listOf(Offset(Float.NaN, Float.NaN)) + stroke.toList()
+                            }
+                            val assinatura = criarAssinaturaBase64ComTracos(flat, largura, altura)
+                            if (assinatura.isNotBlank()) {
+                                onConfirm(assinatura)
+                            } else {
+                                android.widget.Toast.makeText(context, "Não foi possível gerar a assinatura. Tente novamente.", android.widget.Toast.LENGTH_LONG).show()
+                            }
+                        } catch (erro: Throwable) {
+                            android.util.Log.e("ConferentePro", "Falha ao confirmar assinatura", erro)
+                            android.widget.Toast.makeText(context, "Falha ao usar a assinatura. Tente limpar e assinar novamente.", android.widget.Toast.LENGTH_LONG).show()
+                        }
                     }, enabled = strokes.isNotEmpty(), modifier = Modifier.weight(1f).height(52.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = RemanejoAccent)) { Text(confirmarTexto) }
                 }
@@ -489,7 +502,8 @@ private fun CampoComprovante(rotulo: String, valor: String) {
 }
 
 private fun criarAssinaturaBase64ComTracos(pontos: List<Offset>, largura: Float, altura: Float): String {
-    val w = 1800; val h = 900
+    val w = 1200; val h = 600
+    require(pontos.isNotEmpty()) { "Assinatura sem pontos" }
     val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
     val canvas = android.graphics.Canvas(bitmap)
     canvas.drawColor(android.graphics.Color.WHITE)
