@@ -3,8 +3,10 @@ package com.conferentepro.app.ui.navigation
 import android.content.Intent
 import android.app.Activity
 import android.content.pm.ActivityInfo
+import android.view.ViewGroup
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -35,6 +37,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -382,6 +385,13 @@ private fun AssinaturaTelaCheia(
         }
     }
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        val dialogView = LocalView.current
+        SideEffect {
+            (dialogView.parent as? DialogWindowProvider)?.window?.setLayout(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        }
         Surface(Modifier.fillMaxSize(), color = Color(0xFFF4F7F6)) {
             Column(Modifier.fillMaxSize().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(titulo, color = RemanejoNavy, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
