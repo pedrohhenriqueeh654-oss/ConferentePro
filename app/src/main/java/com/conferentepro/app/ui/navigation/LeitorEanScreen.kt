@@ -6,6 +6,7 @@ import com.google.gson.JsonParser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.InputStreamReader
+import java.util.zip.GZIPInputStream
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -79,7 +80,7 @@ fun LeitorEanScreen() {
         carregandoBaseTratativas = true
         val resultado = withContext(Dispatchers.IO) { runCatching { TratativasRoRepository.carregar(context) } }
         resultado.onSuccess { baseTratativas = it; erroBaseTratativas = null }
-            .onFailure { erroBaseTratativas = "Base de tratativas RO indisponível: arquivo Tratativas_RO.json não encontrado ou inválido." }
+            .onFailure { erroBaseTratativas = "Base de tratativas RO indisponível: não foi possível abrir ou interpretar Tratativas_RO.json.gz." }
         carregandoBaseTratativas = false
     }
 
@@ -362,8 +363,10 @@ private class TratativasRoRepository private constructor(private val produtosPor
     companion object {
         suspend fun carregar(context: Context): TratativasRoRepository {
             val json = withContext(Dispatchers.IO) {
-                context.assets.open("Tratativas_RO.json").use { bruto ->
-                    InputStreamReader(bruto, Charsets.UTF_8).use { reader -> JsonParser.parseReader(reader).asJsonObject }
+                context.assets.open("Tratativas_RO.json.gz").use { bruto ->
+                    GZIPInputStream(bruto).use { compactado ->
+                        InputStreamReader(compactado, Charsets.UTF_8).use { reader -> JsonParser.parseReader(reader).asJsonObject }
+                    }
                 }
             }
             val eanRows = json.getAsJsonArray("eanRows").map { it.asJsonArray.map { cell -> if (cell.isJsonNull) "" else cell.asString.trim() } }
@@ -410,9 +413,9 @@ private fun CardTratativasRo(resultados: List<ProdutoComTratativasRo>, carregand
                                 if (item.tratativas.size > 1) Text("TRATATIVA ${tratIndex + 1}", fontWeight = FontWeight.Bold, color = AzulMarinho, fontSize = 15.sp)
                                 TextoCampoTratativaRo("Fabricante", t.fabricante)
                                 TextoCampoTratativaRo("Comprador", t.comprador)
-                                TextoCampoTratativaRo("Política de troca", t.politicaTrocaFornecedor)
-                                TextoCampoTratativaRo("Tipo de negociação", t.tipoNegociacao)
-                                TextoCampoTratativaRo("Tipo de saída", t.tipoSaida)
+                                TextoCampoTratativaRo("Política de troca", t.politicaTrocaFornecedor.ifBlank { "Não informado na planilha" })
+                                TextoCampoTratativaRo("Tipo de negociação", t.tipoNegociacao.ifBlank { "Não informado na planilha" })
+                                TextoCampoTratativaRo("Tipo de saída", t.tipoSaida.ifBlank { "Não informado na planilha" })
                                 val decisao = listOf(t.politicaTrocaFornecedor, t.tipoNegociacao, t.tipoSaida, t.acao).joinToString(" ").uppercase(java.util.Locale.ROOT)
                                 val semNegociacao = decisao.contains("SEM NEGOCIAÇÃO") || decisao.contains("SEM NEGOCIACAO")
                                 val envioCd = decisao.contains("ENVIAR PARA O CD")
@@ -429,10 +432,8 @@ private fun CardTratativasRo(resultados: List<ProdutoComTratativasRo>, carregand
                                             else -> t.politicaTrocaFornecedor.ifBlank { t.tipoNegociacao }
                                         }
                                         Text(tituloDecisao, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = destaque)
-                                        if (t.acao.isNotBlank()) {
-                                            Text("AÇÃO", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                            Text(t.acao, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
-                                        }
+                                        Text("AÇÃO", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text(t.acao.ifBlank { "Não informada na planilha" }, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
                                     }
                                 }
                             }
