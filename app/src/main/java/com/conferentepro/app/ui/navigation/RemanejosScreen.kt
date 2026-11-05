@@ -410,12 +410,9 @@ private fun AssinaturaTelaCheia(
                     Button(onClick = {
                         var etapa = "organizar os traços"
                         try {
-                            val flat = strokes.flatMapIndexed { index, stroke ->
-                                if (index == 0) stroke.toList()
-                                else listOf(Offset(Float.NaN, Float.NaN)) + stroke.toList()
-                            }
+                            val tracos = strokes.map { stroke -> stroke.toList() }
                             etapa = "gerar a imagem da assinatura"
-                            val assinatura = criarAssinaturaBase64ComTracos(flat, largura, altura)
+                            val assinatura = criarAssinaturaBase64ComTracos(tracos, largura, altura)
                             if (assinatura.isNotBlank()) {
                                 etapa = "confirmar e salvar a assinatura"
                                 onConfirm(assinatura)
@@ -506,29 +503,41 @@ private fun CampoComprovante(rotulo: String, valor: String) {
     }
 }
 
-private fun criarAssinaturaBase64ComTracos(pontos: List<Offset>, largura: Float, altura: Float): String {
-    val w = 1200; val h = 600
-    require(pontos.isNotEmpty()) { "Assinatura sem pontos" }
+private fun criarAssinaturaBase64ComTracos(tracos: List<List<Offset>>, largura: Float, altura: Float): String {
+    val w = 1200
+    val h = 600
+    require(tracos.any { it.isNotEmpty() }) { "Assinatura sem pontos" }
     val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
-    val canvas = android.graphics.Canvas(bitmap)
-    canvas.drawColor(android.graphics.Color.WHITE)
-    val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = android.graphics.Color.rgb(18, 59, 70); strokeWidth = 7f
-        style = Paint.Style.STROKE; strokeCap = Paint.Cap.ROUND; strokeJoin = Paint.Join.ROUND
-    }
-    val sx = w / largura.coerceAtLeast(1f); val sy = h / altura.coerceAtLeast(1f)
-    var path: android.graphics.Path? = null
-    pontos.forEach { p ->
-        if (p.x.isNaN() || p.y.isNaN()) { path?.let { canvas.drawPath(it, paint) }; path = null }
-        else {
-            val x = p.x * sx; val y = p.y * sy
-            if (path == null) path = android.graphics.Path().apply { moveTo(x, y) } else path?.lineTo(x, y)
+    try {
+        val canvas = android.graphics.Canvas(bitmap)
+        canvas.drawColor(android.graphics.Color.WHITE)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = android.graphics.Color.rgb(18, 59, 70)
+            strokeWidth = 7f
+            style = Paint.Style.STROKE
+            strokeCap = Paint.Cap.ROUND
+            strokeJoin = Paint.Join.ROUND
         }
+        val sx = w / largura.coerceAtLeast(1f)
+        val sy = h / altura.coerceAtLeast(1f)
+        tracos.forEach { pontos ->
+            if (pontos.isNotEmpty()) {
+                val primeiro = pontos.first()
+                val path = android.graphics.Path().apply {
+                    moveTo(primeiro.x * sx, primeiro.y * sy)
+                    pontos.drop(1).forEach { ponto ->
+                        lineTo(ponto.x * sx, ponto.y * sy)
+                    }
+                }
+                canvas.drawPath(path, paint)
+            }
+        }
+        val stream = java.io.ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+        return Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
+    } finally {
+        bitmap.recycle()
     }
-    path?.let { canvas.drawPath(it, paint) }
-    val stream = java.io.ByteArrayOutputStream()
-    bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream); bitmap.recycle()
-    return Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
 }
 
 private fun criarAssinaturaBase64(pontos: List<Offset>, largura: Float, altura: Float): String {
