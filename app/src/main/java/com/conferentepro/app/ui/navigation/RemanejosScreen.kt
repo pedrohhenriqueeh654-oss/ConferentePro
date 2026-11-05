@@ -408,20 +408,24 @@ private fun AssinaturaTelaCheia(
                     OutlinedButton(onClick = { strokes.clear() }, modifier = Modifier.weight(1f).height(52.dp)) { Text("Limpar") }
                     OutlinedButton(onClick = onDismiss, modifier = Modifier.weight(1f).height(52.dp)) { Text("Cancelar") }
                     Button(onClick = {
+                        var etapa = "organizar os traços"
                         try {
                             val flat = strokes.flatMapIndexed { index, stroke ->
                                 if (index == 0) stroke.toList()
                                 else listOf(Offset(Float.NaN, Float.NaN)) + stroke.toList()
                             }
+                            etapa = "gerar a imagem da assinatura"
                             val assinatura = criarAssinaturaBase64ComTracos(flat, largura, altura)
                             if (assinatura.isNotBlank()) {
+                                etapa = "confirmar e salvar a assinatura"
                                 onConfirm(assinatura)
                             } else {
-                                android.widget.Toast.makeText(context, "Não foi possível gerar a assinatura. Tente novamente.", android.widget.Toast.LENGTH_LONG).show()
+                                android.widget.Toast.makeText(context, "A imagem da assinatura ficou vazia. Tente novamente.", android.widget.Toast.LENGTH_LONG).show()
                             }
-                        } catch (erro: Throwable) {
-                            android.util.Log.e("ConferentePro", "Falha ao confirmar assinatura", erro)
-                            android.widget.Toast.makeText(context, "Falha ao usar a assinatura. Tente limpar e assinar novamente.", android.widget.Toast.LENGTH_LONG).show()
+                        } catch (erro: Exception) {
+                            android.util.Log.e("ConferentePro", "Falha na etapa: $etapa", erro)
+                            val detalhe = erro.localizedMessage?.take(90) ?: erro.javaClass.simpleName
+                            android.widget.Toast.makeText(context, "Falha ao $etapa: $detalhe", android.widget.Toast.LENGTH_LONG).show()
                         }
                     }, enabled = strokes.isNotEmpty(), modifier = Modifier.weight(1f).height(52.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = RemanejoAccent)) { Text(confirmarTexto) }
