@@ -25,6 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -358,7 +359,7 @@ private fun AssinaturaTelaCheia(
     onDismiss: () -> Unit, onConfirm: (String) -> Unit
 ) {
     val activity = LocalContext.current as? Activity
-    val strokes = remember { mutableStateListOf<MutableList<Offset>>() }
+    val strokes = remember { mutableStateListOf<SnapshotStateList<Offset>>() }
     var largura by remember { mutableFloatStateOf(1f) }
     var altura by remember { mutableFloatStateOf(1f) }
     DisposableEffect(activity) {
@@ -387,7 +388,7 @@ private fun AssinaturaTelaCheia(
                 Canvas(Modifier.fillMaxWidth().weight(1f).background(Color.White, RoundedCornerShape(12.dp))
                     .pointerInput(Unit) {
                         detectDragGestures(onDragStart = { p ->
-                            largura = size.width.toFloat(); altura = size.height.toFloat(); strokes.add(mutableListOf(p))
+                            largura = size.width.toFloat(); altura = size.height.toFloat(); strokes.add(mutableStateListOf(p))
                         }, onDrag = { change, _ -> strokes.lastOrNull()?.add(change.position); change.consume() })
                     }
                     .pointerInput(Unit) { detectTapGestures { p ->
