@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.graphics.Color
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -385,36 +386,45 @@ private class TratativasRoRepository private constructor(private val produtosPor
 
 @Composable
 private fun CardTratativasRo(resultados: List<ProdutoComTratativasRo>, carregando: Boolean, erro: String?) {
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("TRATATIVAS RO • PLANILHA", fontWeight = FontWeight.Bold, color = AzulMarinho)
+    Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("TRATATIVA DO PRODUTO", fontWeight = FontWeight.Bold, color = AzulMarinho, fontSize = 17.sp)
             when {
                 carregando -> LinearProgressIndicator(Modifier.fillMaxWidth())
-                erro != null -> Text(erro, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
-                resultados.isEmpty() -> Text("Este EAN não foi localizado na base de tratativas RO.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                erro != null -> Text(erro, color = MaterialTheme.colorScheme.error, fontSize = 14.sp)
+                resultados.isEmpty() -> Text("Este EAN não foi localizado na base de tratativas RO.", fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 else -> {
-                    if (resultados.size > 1) Text("Atenção: existem ${resultados.size} registros distintos para este EAN. Confira todas as alternativas.", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    if (resultados.size > 1) Text("Atenção: existem ${resultados.size} registros distintos para este EAN. Confira todas as alternativas.", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                     resultados.forEachIndexed { index, item ->
-                        if (resultados.size > 1) Text("REGISTRO ${index + 1}", fontWeight = FontWeight.Bold, color = AzulMarinho)
+                        if (resultados.size > 1) Text("REGISTRO ${index + 1}", fontWeight = FontWeight.Bold, color = AzulMarinho, fontSize = 15.sp)
                         val p = item.produto
                         TextoCampoTratativaRo("Código", p.codigo)
                         TextoCampoTratativaRo("Descrição", p.descricao)
                         TextoCampoTratativaRo("Grupo", p.grupo)
                         TextoCampoTratativaRo("ID fabricante", p.idFabricante)
-                        TextoCampoTratativaRo("Fabricante / laboratório", p.fabricante)
-                        if (item.quantidadeRegistrosEan > 1) Text("Planilha contém ${item.quantidadeRegistrosEan} linhas para este EAN.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        if (item.tratativas.isEmpty()) Text("Não foi encontrada tratativa para este ID de fabricante.", fontSize = 12.sp)
+                        if (item.quantidadeRegistrosEan > 1) Text("Planilha contém ${item.quantidadeRegistrosEan} linhas para este EAN.", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        if (item.tratativas.isEmpty()) Text("Não foi encontrada tratativa para este ID de fabricante.", fontSize = 14.sp)
                         else {
-                            if (item.tratativas.size > 1) Text("Há ${item.tratativas.size} registros distintos na Base Trat RO para este fabricante.", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            if (item.tratativas.size > 1) Text("Há ${item.tratativas.size} registros distintos na Base Trat RO para este fabricante.", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                             item.tratativas.forEachIndexed { tratIndex, t ->
-                                if (item.tratativas.size > 1) Text("TRATATIVA ${tratIndex + 1}", fontWeight = FontWeight.Bold, color = AzulMarinho)
+                                if (item.tratativas.size > 1) Text("TRATATIVA ${tratIndex + 1}", fontWeight = FontWeight.Bold, color = AzulMarinho, fontSize = 15.sp)
                                 TextoCampoTratativaRo("Fabricante", t.fabricante)
                                 TextoCampoTratativaRo("Comprador", t.comprador)
-                                TextoCampoTratativaRo("Política de troca fornecedor", t.politicaTrocaFornecedor)
+                                TextoCampoTratativaRo("Política de troca", t.politicaTrocaFornecedor)
                                 TextoCampoTratativaRo("Tipo de negociação", t.tipoNegociacao)
                                 TextoCampoTratativaRo("Tipo de saída", t.tipoSaida)
-                                TextoCampoTratativaRo("Ação", t.acao)
-                                TextoCampoTratativaRo("LOJA/CD", t.lojaCd)
+                                val decisao = listOf(t.politicaTrocaFornecedor, t.tipoNegociacao, t.tipoSaida, t.acao).joinToString(" ").uppercase(java.util.Locale.ROOT)
+                                val semNegociacao = decisao.contains("SEM NEGOCIAÇÃO") || decisao.contains("SEM NEGOCIACAO")
+                                val envioCd = decisao.contains("ENVIAR PARA O CD")
+                                val recolhimento = decisao.contains("FORNECEDOR FARÁ RECOLHIMENTO NA LOJA") || decisao.contains("FORNECEDOR FARA RECOLHIMENTO NA LOJA")
+                                val destaque = when { semNegociacao -> MaterialTheme.colorScheme.error; envioCd || recolhimento -> Color(0xFF16834A); else -> AzulMarinho }
+                                val fundo = when { semNegociacao -> MaterialTheme.colorScheme.errorContainer; envioCd || recolhimento -> Color(0xFFE5F5EA); else -> MaterialTheme.colorScheme.surfaceVariant }
+                                Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = fundo)) {
+                                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                                        Text("AÇÃO / TRATATIVA", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = destaque)
+                                        Text(t.acao.ifBlank { t.politicaTrocaFornecedor.ifBlank { t.tipoNegociacao } }, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = destaque)
+                                    }
+                                }
                             }
                         }
                         if (index < resultados.lastIndex) HorizontalDivider()
@@ -427,5 +437,10 @@ private fun CardTratativasRo(resultados: List<ProdutoComTratativasRo>, carregand
 
 @Composable
 private fun TextoCampoTratativaRo(rotulo: String, valor: String) {
-    if (valor.isNotBlank()) Text("$rotulo: $valor", fontSize = 12.sp)
+    if (valor.isNotBlank()) {
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(rotulo.uppercase(), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(valor, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
+        }
+    }
 }
