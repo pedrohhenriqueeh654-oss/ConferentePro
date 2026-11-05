@@ -82,7 +82,7 @@ fun LeitorEanScreen() {
 
     LaunchedEffect(Unit) {
         carregandoBaseTratativas = true
-        val resultado = withContext(Dispatchers.IO) { runCatching { TratativasRoRepository.carregar(context) } }
+        val resultado = runCatching { TratativasRoRepository.carregar(context) }
         resultado.onSuccess { baseTratativas = it; erroBaseTratativas = null }
             .onFailure { falha ->
                 val detalhe = falha.message?.takeIf { it.isNotBlank() } ?: falha.javaClass.simpleName
@@ -390,49 +390,82 @@ private data class ProdutoComTratativasRo(val produto: ProdutoTratativaRo, val t
 
 private class TratativasRoRepository private constructor(private val produtosPorEan: Map<String, List<ProdutoComTratativasRo>>) {
     fun consultar(ean: String): List<ProdutoComTratativasRo> = produtosPorEan[ean.filter(Char::isDigit)].orEmpty()
+
     companion object {
+        @Volatile
+        private var instancia: TratativasRoRepository? = null
+
         suspend fun carregar(context: Context): TratativasRoRepository {
-            val json = withContext(Dispatchers.IO) {
-                // Aceita o asset compactado e o JSON simples, detectando o formato pelo conteúdo.
-                val nomes = listOf("Tratativas_RO.json.gz", "Tratativas_RO.json")
-                var ultimaFalha: Exception? = null
-                var objeto: com.google.gson.JsonObject? = null
-                for (nomeArquivo in nomes) {
-                    try {
-                        context.assets.open(nomeArquivo).use { bruto ->
-                            val bytes = bruto.readBytes()
-                            val ehGzip = bytes.size >= 2 && bytes[0] == 0x1f.toByte() && bytes[1] == 0x8b.toByte()
-                            val conteudo = if (ehGzip) GZIPInputStream(bytes.inputStream()).use { it.readBytes() } else bytes
-                            val candidato = JsonParser.parseString(conteudo.toString(Charsets.UTF_8)).asJsonObject
-                            require(candidato.has("eanRows") && candidato.has("tratRows")) {
-                                "$nomeArquivo não contém eanRows e tratRows"
+            instancia?.let { return it }
+            return withContext(Dispatchers.IO) {
+                synchronized(this@Companion) {
+                    instancia?.let { return@synchronized it }
+
+                    val nomes = listOf("Tratativas_RO.json.gz", "Tratativas_RO.json")
+                    var ultimaFalha: Exception? = null
+                    var json: com.google.gson.JsonObject? = null
+                    for (nomeArquivo in nomes) {
+                        try {
+                            context.assets.open(nomeArquivo).use { bruto ->
+                                val bytes = bruto.readBytes()
+                                val ehGzip = bytes.size >= 2 && bytes[0] == 0x1f.toByte() && bytes[1] == 0x8b.toByte()
+                                val conteudo = if (ehGzip) GZIPInputStream(bytes.inputStream()).use { it.readBytes() } else bytes
+                                val candidato = JsonParser.parseString(conteudo.toString(Charsets.UTF_8)).asJsonObject
+                                require(candidato.has("eanRows") && candidato.has("tratRows")) {
+                                    "$nomeArquivo não contém eanRows e tratRows"
+                                }
+                                json = candidato
                             }
-                            objeto = candidato
+                            if (json != null) break
+                        } catch (e: Exception) {
+                            ultimaFalha = e
                         }
-                        if (objeto != null) break
-                    } catch (e: Exception) {
-                        ultimaFalha = e
                     }
-                }
-                objeto ?: throw IllegalStateException(
-                    "Falha ao abrir a base JSON/GZIP: " + (ultimaFalha?.message ?: "arquivos ausentes")
-                )
-            }
-            val eanRows = json.getAsJsonArray("eanRows").map { it.asJsonArray.map { cell -> if (cell.isJsonNull) "" else cell.asString.trim() } }
-            val tratRows = json.getAsJsonArray("tratRows").map { it.asJsonArray.map { cell -> if (cell.isJsonNull) "" else cell.asString.trim() } }
-            val tratamentosPorFabricante = tratRows.filter { it.getOrElse(0) { "" }.isNotBlank() }.groupBy { normalizarIdFabricante(it.getOrElse(0) { "" }) }
-            val agrupados = eanRows.filter { it.getOrElse(0) { "" }.isNotBlank() }.groupBy { it[0].filter(Char::isDigit) }
-            val resultado = agrupados.mapValues { (_, linhas) ->
-                linhas.distinct().map { linha ->
-                    val produto = ProdutoTratativaRo(linha.getOrElse(0) { "" }, linha.getOrElse(1) { "" }, linha.getOrElse(2) { "" }, linha.getOrElse(3) { "" }, linha.getOrElse(4) { "" }, linha.getOrElse(5) { "" })
-                    val chaveFabricante = normalizarIdFabricante(produto.idFabricante)
-                    val tratativas = (tratamentosPorFabricante[chaveFabricante] ?: tratRows.filter { normalizarIdFabricante(it.getOrElse(0) { "" }) == chaveFabricante }).orEmpty().distinct().map { t ->
-                        DadosTratativaRo(t.getOrElse(0) { "" }, t.getOrElse(1) { "" }, t.getOrElse(2) { "" }, t.getOrElse(3) { "" }, t.getOrElse(4) { "" }, t.getOrElse(5) { "" }, t.getOrElse(6) { "" }, t.getOrElse(7) { "" })
+                    val dados = json ?: throw IllegalStateException(
+                        "Falha ao abrir a base JSON/GZIP: " + (ultimaFalha?.message ?: "arquivos ausentes")
+                    )
+
+                    // Leitura, descompactação, parsing e indexação ocorrem fora da thread da interface.
+                    val eanRows = dados.getAsJsonArray("eanRows").map { row ->
+                        row.asJsonArray.map { cell -> if (cell.isJsonNull) "" else cell.asString.trim() }
                     }
-                    ProdutoComTratativasRo(produto, tratativas, linhas.size)
+                    val tratRows = dados.getAsJsonArray("tratRows").map { row ->
+                        row.asJsonArray.map { cell -> if (cell.isJsonNull) "" else cell.asString.trim() }
+                    }
+                    val tratamentosPorFabricante = tratRows
+                        .filter { it.getOrElse(0) { "" }.isNotBlank() }
+                        .groupBy { normalizarIdFabricante(it.getOrElse(0) { "" }) }
+
+                    val agrupados = eanRows
+                        .filter { it.getOrElse(0) { "" }.isNotBlank() }
+                        .groupBy { it[0].filter(Char::isDigit) }
+
+                    val resultado = agrupados.mapValues { (_, linhas) ->
+                        linhas.distinct().map { linha ->
+                            val produto = ProdutoTratativaRo(
+                                linha.getOrElse(0) { "" }, linha.getOrElse(1) { "" },
+                                linha.getOrElse(2) { "" }, linha.getOrElse(3) { "" },
+                                linha.getOrElse(4) { "" }, linha.getOrElse(5) { "" }
+                            )
+                            val chaveFabricante = normalizarIdFabricante(produto.idFabricante)
+                            // O índice já contém todos os fabricantes normalizados; não é necessário
+                            // percorrer novamente a planilha inteira para cada produto.
+                            val tratativas = tratamentosPorFabricante[chaveFabricante].orEmpty()
+                                .distinct()
+                                .map { t ->
+                                    DadosTratativaRo(
+                                        t.getOrElse(0) { "" }, t.getOrElse(1) { "" },
+                                        t.getOrElse(2) { "" }, t.getOrElse(3) { "" },
+                                        t.getOrElse(4) { "" }, t.getOrElse(5) { "" },
+                                        t.getOrElse(6) { "" }, t.getOrElse(7) { "" }
+                                    )
+                                }
+                            ProdutoComTratativasRo(produto, tratativas, linhas.size)
+                        }
+                    }
+                    TratativasRoRepository(resultado).also { instancia = it }
                 }
             }
-            return TratativasRoRepository(resultado)
         }
     }
 }
