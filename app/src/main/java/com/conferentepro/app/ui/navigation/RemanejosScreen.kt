@@ -358,7 +358,8 @@ private fun AssinaturaTelaCheia(
     titulo: String, descricao: String, confirmarTexto: String,
     onDismiss: () -> Unit, onConfirm: (String) -> Unit
 ) {
-    val activity = LocalContext.current as? Activity
+    val context = LocalContext.current
+    val activity = context as? Activity
     val strokes = remember { mutableStateListOf<SnapshotStateList<Offset>>() }
     var largura by remember { mutableFloatStateOf(1f) }
     var altura by remember { mutableFloatStateOf(1f) }
