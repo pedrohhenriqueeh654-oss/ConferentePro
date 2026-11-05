@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -57,6 +58,7 @@ fun LeitorEanScreen() {
     val db = remember { AppDatabase.getInstance(context) }
     val scope = rememberCoroutineScope()
     var ean by remember { mutableStateOf("") }
+    var eanDigitado by remember { mutableStateOf("") }
     var produto by remember { mutableStateOf<ProdutoEntity?>(null) }
     var verificando by remember { mutableStateOf(false) }
     var erro by remember { mutableStateOf<String?>(null) }
@@ -111,11 +113,21 @@ fun LeitorEanScreen() {
         if (ean.isBlank()) {
         CabecalhoTela("Leitor de produtos", "Leia o EAN para consultar a ficha e registrar ocorrências", "SCANNER")
         Spacer(Modifier.height(10.dp))
+        Text("OU DIGITE O CÓDIGO MANUALMENTE", fontWeight = FontWeight.Bold, color = AzulMarinho, fontSize = 13.sp)
         OutlinedTextField(
-            value = ean, onValueChange = { ean = it.filter(Char::isDigit).take(14) },
-            modifier = Modifier.fillMaxWidth(), label = { Text("EAN / código de barras") },
-            singleLine = true, trailingIcon = { IconButton(onClick = { ean = "" }) { Icon(Icons.Default.Close, "Limpar") } }
+            value = eanDigitado,
+            onValueChange = { eanDigitado = it.filter(Char::isDigit).take(14) },
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text("Digite o EAN aqui") },
+            placeholder = { Text("Ex.: 7891234567890") },
+            singleLine = true,
+            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Number)
         )
+        Button(onClick = { ean = eanDigitado; erro = null }, enabled = eanDigitado.length in 8..14, modifier = Modifier.fillMaxWidth()) {
+            Icon(Icons.Default.Search, null)
+            Spacer(Modifier.width(8.dp))
+            Text("Consultar EAN digitado")
+        }
         Spacer(Modifier.height(8.dp))
         // A câmera fica ativa somente enquanto aguardamos uma leitura.
         // Ao capturar um EAN, removemos o Preview da composição e o DisposableEffect
@@ -124,7 +136,7 @@ fun LeitorEanScreen() {
             CameraEanPreview(
                 modifier = Modifier.fillMaxWidth().height(190.dp),
                 lifecycleOwner = lifecycleOwner,
-                onCodeRead = { code -> if (code != ean) { ean = code; erro = null } },
+                onCodeRead = { code -> if (code != ean) { ean = code; eanDigitado = code; erro = null } },
                 onError = { erro = it }
             )
         } else {
@@ -151,6 +163,7 @@ fun LeitorEanScreen() {
             OutlinedButton(
                 onClick = {
                     ean = ""
+                    eanDigitado = ""
                     erro = null
                     tipo = "AVARIA"
                     destino = "CD"
