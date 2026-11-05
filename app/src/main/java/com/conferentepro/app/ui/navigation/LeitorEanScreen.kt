@@ -18,6 +18,8 @@ import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -105,7 +107,7 @@ fun LeitorEanScreen() {
         }
     }
 
-    Column(Modifier.fillMaxSize()) {
+    Column(Modifier.fillMaxSize().then(if (ean.isNotBlank() && produto == null) Modifier.verticalScroll(rememberScrollState()) else Modifier)) {
         if (ean.isBlank()) {
         CabecalhoTela("Leitor de produtos", "Leia o EAN para consultar a ficha e registrar ocorrências", "SCANNER")
         Spacer(Modifier.height(10.dp))
@@ -357,6 +359,12 @@ private fun CameraEanPreview(
 }
 
 
+private fun normalizarIdFabricante(valor: String): String {
+    val bruto = valor.trim()
+    val semDecimal = if (bruto.endsWith(".0")) bruto.dropLast(2) else bruto
+    return semDecimal.filter { it.isLetterOrDigit() }.uppercase(java.util.Locale.ROOT)
+}
+
 private data class ProdutoTratativaRo(val ean: String, val codigo: String, val descricao: String, val grupo: String, val idFabricante: String, val fabricante: String)
 private data class DadosTratativaRo(val codigoFabricante: String, val fabricante: String, val comprador: String, val politicaTrocaFornecedor: String, val tipoNegociacao: String, val tipoSaida: String, val acao: String, val lojaCd: String)
 private data class ProdutoComTratativasRo(val produto: ProdutoTratativaRo, val tratativas: List<DadosTratativaRo>, val quantidadeRegistrosEan: Int)
@@ -393,12 +401,13 @@ private class TratativasRoRepository private constructor(private val produtosPor
             }
             val eanRows = json.getAsJsonArray("eanRows").map { it.asJsonArray.map { cell -> if (cell.isJsonNull) "" else cell.asString.trim() } }
             val tratRows = json.getAsJsonArray("tratRows").map { it.asJsonArray.map { cell -> if (cell.isJsonNull) "" else cell.asString.trim() } }
-            val tratamentosPorFabricante = tratRows.groupBy { it.getOrElse(0) { "" } }
-            val agrupados = eanRows.filter { it.getOrElse(0) { "" }.isNotBlank() }.groupBy { it[0] }
+            val tratamentosPorFabricante = tratRows.filter { it.getOrElse(0) { "" }.isNotBlank() }.groupBy { normalizarIdFabricante(it.getOrElse(0) { "" }) }
+            val agrupados = eanRows.filter { it.getOrElse(0) { "" }.isNotBlank() }.groupBy { it[0].filter(Char::isDigit) }
             val resultado = agrupados.mapValues { (_, linhas) ->
                 linhas.distinct().map { linha ->
                     val produto = ProdutoTratativaRo(linha.getOrElse(0) { "" }, linha.getOrElse(1) { "" }, linha.getOrElse(2) { "" }, linha.getOrElse(3) { "" }, linha.getOrElse(4) { "" }, linha.getOrElse(5) { "" })
-                    val tratativas = tratamentosPorFabricante[produto.idFabricante].orEmpty().distinct().map { t ->
+                    val chaveFabricante = normalizarIdFabricante(produto.idFabricante)
+                    val tratativas = (tratamentosPorFabricante[chaveFabricante] ?: tratRows.filter { normalizarIdFabricante(it.getOrElse(0) { "" }) == chaveFabricante }).orEmpty().distinct().map { t ->
                         DadosTratativaRo(t.getOrElse(0) { "" }, t.getOrElse(1) { "" }, t.getOrElse(2) { "" }, t.getOrElse(3) { "" }, t.getOrElse(4) { "" }, t.getOrElse(5) { "" }, t.getOrElse(6) { "" }, t.getOrElse(7) { "" })
                     }
                     ProdutoComTratativasRo(produto, tratativas, linhas.size)
