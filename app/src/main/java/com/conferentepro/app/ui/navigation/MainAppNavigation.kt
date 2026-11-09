@@ -137,7 +137,7 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     val saudacao = when (java.time.LocalTime.now().hour) {
                         in 5..11 -> "Bom dia"
@@ -146,23 +146,36 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                     }
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(22.dp),
+                        shape = RoundedCornerShape(18.dp),
                         colors = CardDefaults.cardColors(containerColor = AzulMarinho),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(18.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(saudacao + ", Conferente!", color = Color.White.copy(alpha = 0.90f), fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                                Text("Tudo organizado para o seu expediente", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Medium)
-                                Text(hoje.format(DateTimeFormatter.ofPattern("EEEE, dd 'de' MMMM", java.util.Locale("pt", "BR"))),
-                                    color = Color.White.copy(alpha = 0.75f), fontSize = 12.sp)
+                        Column(Modifier.fillMaxWidth().padding(18.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                    Text("PAINEL OPERACIONAL", color = Color(0xFF9FD5D0),
+                                        fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                                    Text(saudacao + ", Conferente!", color = Color.White,
+                                        fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                                    Text(hoje.format(DateTimeFormatter.ofPattern("EEEE, dd 'de' MMMM",
+                                        java.util.Locale("pt", "BR"))),
+                                        color = Color.White.copy(alpha = 0.76f), fontSize = 11.sp)
+                                }
+                                Surface(shape = RoundedCornerShape(14.dp),
+                                    color = Color.White.copy(alpha = 0.11f)) {
+                                    Icon(Icons.Default.Inventory2, contentDescription = null,
+                                        tint = Color(0xFF6DDBCC),
+                                        modifier = Modifier.padding(12.dp).size(25.dp))
+                                }
                             }
-                            Surface(shape = RoundedCornerShape(20.dp), color = Color.White.copy(alpha = 0.12f)) {
-                                Icon(Icons.Default.Inventory2, contentDescription = null, tint = LaranjaUltra,
-                                    modifier = Modifier.padding(13.dp).size(30.dp))
+                            HorizontalDivider(color = Color.White.copy(alpha = 0.15f))
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically) {
+                                Text("Demandas que precisam de atenção", color = Color.White.copy(alpha = 0.82f),
+                                    fontSize = 11.sp)
+                                Text((totalPendentes + totalEmAndamento + totalAtrasadas).toString(),
+                                    color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -283,7 +296,7 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                         fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         StatusResumoCard(
                             titulo = "PENDENTES",
@@ -300,10 +313,9 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                             modifier = Modifier.weight(1f)
                         )
                     }
-                    Spacer(modifier = Modifier.height(12.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         StatusResumoCard(
                             titulo = "ATRASADAS",
@@ -386,16 +398,16 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                     }
                     Spacer(Modifier.height(12.dp))
 
-                    val semAssinatura = remanejos.filter { it.assinaturaBase64.isBlank() }.sortedBy { it.dataRegistro }
-                    val ocorrenciasPendentes = ocorrenciasAbertas.filter { it.status.equals("PENDENTE", true) }
-                    val cobrancasPendentes = cobrancas.filter { !it.status.equals("RESOLVIDA", true) && !it.status.equals("CONCLUIDA", true) }
+                    val semAssinatura = remember(remanejos) { remanejos.filter { it.assinaturaBase64.isBlank() }.sortedBy { it.dataRegistro } }
+                    val ocorrenciasPendentes = remember(ocorrenciasAbertas) { ocorrenciasAbertas.filter { it.status.equals("PENDENTE", true) } }
+                    val cobrancasPendentes = remember(cobrancas) { cobrancas.filter { !it.status.equals("RESOLVIDA", true) && !it.status.equals("CONCLUIDA", true) } }
                     Spacer(Modifier.height(12.dp))
                     Text("PENDÊNCIAS E ASSINATURAS", color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                     Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(22.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("PAINEL DE PENDÊNCIAS", color = AzulMarinho, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            Text("Situação das pendências", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 StatusResumoCard("SEM ASSINATURA", semAssinatura.size, Icons.Default.Draw, Color(0xFFB45309), Modifier.weight(1f))
                                 StatusResumoCard("OCORRÊNCIAS", ocorrenciasPendentes.size, Icons.Default.WarningAmber, VermelhoAtraso, Modifier.weight(1f))
@@ -662,40 +674,29 @@ private fun StatusResumoCard(
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.height(102.dp),
-        shape = RoundedCornerShape(20.dp),
+        modifier = modifier.height(92.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp,
+            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.65f))
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(14.dp),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Icon(
-                imageVector = icone,
-                contentDescription = null,
-                tint = cor,
-                modifier = Modifier.size(23.dp)
-            )
-            Text(
-                text = quantidade.toString(),
-                color = AzulMarinho,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = titulo,
-                color = cor,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 0.35.sp
-            )
+        Column(Modifier.fillMaxSize().padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.SpaceBetween) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(quantidade.toString(), color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 27.sp, fontWeight = FontWeight.Bold)
+                Surface(shape = RoundedCornerShape(10.dp), color = cor.copy(alpha = 0.12f)) {
+                    Icon(icone, contentDescription = null, tint = cor,
+                        modifier = Modifier.padding(7.dp).size(19.dp))
+                }
+            }
+            Text(titulo, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 10.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
         }
     }
 }
-
 
 @Composable
 private fun InfoAppLinha(rotulo: String, valor: String) {
