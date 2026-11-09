@@ -289,14 +289,14 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                             titulo = "PENDENTES",
                             quantidade = totalPendentes,
                             icone = Icons.Default.Assignment,
-                            cor = Color(0xFF287A9B),
+                            cor = Color(0xFF326C9C),
                             modifier = Modifier.weight(1f)
                         )
                         StatusResumoCard(
                             titulo = "EM ANDAMENTO",
                             quantidade = totalEmAndamento,
                             icone = Icons.Default.Autorenew,
-                            cor = Color(0xFF087E83),
+                            cor = Color(0xFF148A84),
                             modifier = Modifier.weight(1f)
                         )
                     }
