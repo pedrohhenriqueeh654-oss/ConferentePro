@@ -34,9 +34,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
-private val Petrol = Color(0xFF123B46)
-private val Teal = Color(0xFF087E83)
-private val Turquoise = Color(0xFF39B8A5)
+private val Petrol = Color(0xFF123B50)
+private val Teal = Color(0xFF148A84)
+private val Turquoise = Color(0xFF148A84)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,7 +48,9 @@ class MainActivity : ComponentActivity() {
             val lightColors = lightColorScheme(
                 primary = Teal,
                 secondary = Turquoise,
-                background = Color(0xFFF4F7F6),
+                surfaceVariant = Color(0xFFE9F0F3),
+                onSurfaceVariant = Color(0xFF526577),
+                background = Color(0xFFF2F5F8),
                 surface = Color.White,
                 onBackground = Petrol,
                 onSurface = Petrol
@@ -58,6 +60,8 @@ class MainActivity : ComponentActivity() {
                 secondary = Color(0xFF70D6C6),
                 background = Color(0xFF101B1E),
                 surface = Color(0xFF1B2A2E),
+                surfaceVariant = Color(0xFF263A40),
+                onSurfaceVariant = Color(0xFFB5C8CD),
                 onBackground = Color(0xFFE8F0EF),
                 onSurface = Color(0xFFE8F0EF)
             )
