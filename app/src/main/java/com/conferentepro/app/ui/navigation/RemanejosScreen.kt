@@ -53,8 +53,8 @@ import java.util.Calendar
 import java.util.Locale
 
 private val RemanejoBg = Color(0xFFF4F7F6)
-private val RemanejoNavy = Color(0xFF123B46)
-private val RemanejoAccent = Color(0xFF087E83)
+private val RemanejoNavy = Color(0xFF123B50)
+private val RemanejoAccent = Color(0xFF148A84)
 
 @Composable
 fun RemanejosScreen(db: AppDatabase) {
@@ -96,12 +96,12 @@ fun RemanejosScreen(db: AppDatabase) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                Text("Gestão de remanejos", color = RemanejoNavy, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Text("Gestão de remanejos", color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 Text("${registros.size} comprovante(s) registrado(s)", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Surface(
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.surface,
                     shape = RoundedCornerShape(10.dp),
                     tonalElevation = 1.dp
                 ) {
