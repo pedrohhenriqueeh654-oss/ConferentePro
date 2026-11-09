@@ -504,7 +504,7 @@ private fun CardTratativasRo(resultados: List<ProdutoComTratativasRo>, carregand
                                 val envioCd = decisao.contains("ENVIAR PARA O CD")
                                 val recolhimento = decisao.contains("FORNECEDOR FARÁ RECOLHIMENTO NA LOJA") || decisao.contains("FORNECEDOR FARA RECOLHIMENTO NA LOJA")
                                 val destaque = when { semNegociacao -> MaterialTheme.colorScheme.error; envioCd || recolhimento -> Color(0xFF16834A); else -> AzulMarinho }
-                                val fundo = when { semNegociacao -> MaterialTheme.colorScheme.errorContainer; envioCd || recolhimento -> Color(0xFFE5F5EA); else -> MaterialTheme.colorScheme.surfaceVariant }
+                                val fundo = when { semNegociacao -> MaterialTheme.colorScheme.errorContainer; envioCd || recolhimento -> MaterialTheme.colorScheme.secondaryContainer; else -> MaterialTheme.colorScheme.surfaceVariant }
                                 Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = fundo)) {
                                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
                                         Text("DECISÃO", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = destaque)
