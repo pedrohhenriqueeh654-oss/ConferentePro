@@ -87,7 +87,7 @@ fun AssistenteOperacionalScreen(
             items(mensagens) { mensagem ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = if (mensagem.doUsuario) Arrangement.End else Arrangement.Start) {
                     Surface(
-                        color = if (mensagem.doUsuario) Color(0xFFDDF3EF) else MaterialTheme.colorScheme.surface,
+                        color = if (mensagem.doUsuario) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
                         shape = RoundedCornerShape(if (mensagem.doUsuario) 20.dp else 8.dp, 20.dp, 20.dp, 20.dp),
                         modifier = Modifier.widthIn(max = 330.dp),
                         tonalElevation = if (mensagem.doUsuario) 0.dp else 1.dp
