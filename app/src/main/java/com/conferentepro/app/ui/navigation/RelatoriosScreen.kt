@@ -77,9 +77,9 @@ fun RelatoriosScreen(db: AppDatabase) {
                 Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(22.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                     Column(Modifier.padding(14.dp)) {
                         Row {
-                            Icon(Icons.Default.EventAvailable, contentDescription = null, tint = Color(0xFF087E83))
+                            Icon(Icons.Default.EventAvailable, contentDescription = null, tint = Color(0xFF148A84))
                             Spacer(Modifier.width(8.dp))
-                            Text("VENCIDOS OU PRÓXIMOS DO VENCIMENTO", color = AzulMarinho, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Text("VENCIDOS OU PRÓXIMOS DO VENCIMENTO", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                         }
                         Spacer(Modifier.height(8.dp))
                         Text(vencidosEProximos.size.toString(), color = AzulMarinho, fontSize = 30.sp, fontWeight = FontWeight.Bold)
