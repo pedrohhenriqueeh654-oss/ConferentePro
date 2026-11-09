@@ -54,7 +54,7 @@ fun CentralCobrancasScreen(db: AppDatabase, demandas: List<DemandaEntity>) {
         }
         Spacer(Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            ResumoCentral("Ocorrências", ocorrenciasAbertas, Color(0xFF087E83), Modifier.weight(1f))
+            ResumoCentral("Ocorrências", ocorrenciasAbertas, Color(0xFF148A84), Modifier.weight(1f))
             ResumoCentral("Cobrar hoje", cobrancasVencidas, Color(0xFFE07A22), Modifier.weight(1f))
         }
         Spacer(Modifier.height(10.dp))
