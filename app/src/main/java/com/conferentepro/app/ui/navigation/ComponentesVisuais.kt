@@ -12,9 +12,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private val VisualNavy = Color(0xFF123B46)
-private val VisualTeal = Color(0xFF087E83)
-private val VisualMint = Color(0xFF39B8A5)
+private val VisualNavy = Color(0xFF123B50)
+private val VisualTeal = Color(0xFF148A84)
+private val VisualMint = Color(0xFF148A84)
 
 @Composable
 fun CabecalhoTela(
@@ -51,7 +51,7 @@ fun CabecalhoTela(
 fun TituloSecaoVisual(titulo: String, detalhe: String? = null, modifier: Modifier = Modifier) {
     Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(titulo.uppercase(), color = VisualNavy, fontSize = 11.sp,
+            Text(titulo.uppercase(), color = MaterialTheme.colorScheme.onSurface, fontSize = 11.sp,
                 fontWeight = FontWeight.Bold, letterSpacing = .8.sp)
             if (!detalhe.isNullOrBlank()) Text(detalhe, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
         }
@@ -68,7 +68,7 @@ fun IndicadorVisual(titulo: String, valor: String, detalhe: String? = null, modi
     ) {
         Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Text(valor, color = VisualTeal, fontSize = 23.sp, fontWeight = FontWeight.Bold)
-            Text(titulo, color = VisualNavy, fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
+            Text(titulo, color = MaterialTheme.colorScheme.onSurface, fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
             if (!detalhe.isNullOrBlank()) Text(detalhe, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 9.sp)
         }
     }
@@ -86,7 +86,7 @@ fun EstadoVazioVisual(titulo: String, descricao: String, modifier: Modifier = Mo
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Text(titulo, color = VisualNavy, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text(titulo, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             Text(descricao, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, lineHeight = 16.sp)
         }
     }
