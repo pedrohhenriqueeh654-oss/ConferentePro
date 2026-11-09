@@ -32,8 +32,8 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-val AzulMarinho = Color(0xFF123B46)
-val LaranjaUltra = Color(0xFF39B8A5)
+val AzulMarinho = Color(0xFF123B50)
+val LaranjaUltra = Color(0xFF148A84)
 val VermelhoAtraso = Color(0xFFD32F2F)
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,8 +69,8 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
             TopAppBar(
                 title = {
                     Column(verticalArrangement = Arrangement.Center) {
-                        Text("CONFERENTE PRO", fontWeight = FontWeight.ExtraBold, color = Color.White, fontSize = 18.sp, letterSpacing = 0.7.sp)
-                        Text("GESTÃO OPERACIONAL • OFFLINE", color = Color.White.copy(alpha = 0.72f), fontSize = 9.sp, fontWeight = FontWeight.Medium, letterSpacing = 0.8.sp)
+                        Text("Conferente Pro", fontWeight = FontWeight.ExtraBold, color = Color.White, fontSize = 19.sp, letterSpacing = 0.1.sp)
+                        Text("Controle Operacional • Offline", color = Color.White.copy(alpha = 0.78f), fontSize = 10.sp, fontWeight = FontWeight.Medium)
                     }
                 },
                 actions = {
@@ -93,7 +93,7 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
             )
         },
         bottomBar = {
-            NavigationBar(containerColor = AzulMarinho, tonalElevation = 8.dp) {
+            NavigationBar(containerColor = AzulMarinho, tonalElevation = 3.dp) {
                 NavigationBarItem(selected = telaSelecionada == 0, onClick = { telaSelecionada = 0 },
                     icon = { Icon(Icons.Default.Dashboard, contentDescription = "Início", tint = if (telaSelecionada == 0) LaranjaUltra else Color.LightGray) },
                     label = { Text("Início", color = if (telaSelecionada == 0) Color.White else Color.LightGray, fontWeight = if (telaSelecionada == 0) FontWeight.Bold else FontWeight.Normal) })
@@ -114,14 +114,14 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                 .fillMaxSize()
                 .padding(padding)
                 .background(MaterialTheme.colorScheme.background)
-                .padding(16.dp)
+                .padding(horizontal = 14.dp, vertical = 12.dp)
         ) {
             if (telaSelecionada == 0) {
                 val agora = System.currentTimeMillis()
-                val demandasAtivas = demandas.filter {
+                val demandasAtivas = remember(demandas) { demandas.filter {
                     !it.concluida && it.status != StatusDemanda.CONCLUIDA &&
                         it.status != StatusDemanda.CANCELADA
-                }
+                } }
                 val totalAtrasadas = demandasAtivas.count { it.dataPrazoFinal != Long.MAX_VALUE && it.dataPrazoFinal < agora }
                 val totalPendentes = demandasAtivas.count {
                     it.status == StatusDemanda.PENDENTE && (it.dataPrazoFinal == Long.MAX_VALUE || it.dataPrazoFinal >= agora)
@@ -155,8 +155,8 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(saudacao + "!", color = Color.White.copy(alpha = 0.78f), fontSize = 13.sp)
-                                Text("Visão geral da operação", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                                Text(saudacao + ", Conferente!", color = Color.White.copy(alpha = 0.90f), fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                                Text("Tudo organizado para o seu expediente", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Medium)
                                 Text(hoje.format(DateTimeFormatter.ofPattern("EEEE, dd 'de' MMMM", java.util.Locale("pt", "BR"))),
                                     color = Color.White.copy(alpha = 0.75f), fontSize = 12.sp)
                             }
@@ -166,7 +166,7 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                             }
                         }
                     }
-                    Text("CICLO DO CD", color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    Text("ENVIO MENSAL AO CD", color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -279,7 +279,7 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                         }
                     }
 
-                    Text("DEMANDAS OPERACIONAIS", color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    Text("VISÃO GERAL DAS DEMANDAS", color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -319,6 +319,31 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                             cor = Color(0xFF388E3C),
                             modifier = Modifier.weight(1f)
                         )
+                    }
+                    Text("ACESSO RÁPIDO", color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf(
+                            Triple("EAN", Icons.Default.QrCodeScanner, 2),
+                            Triple("Remanejo", Icons.Default.LocalShipping, 1),
+                            Triple("Produtos", Icons.Default.Inventory2, 8),
+                            Triple("Demandas", Icons.Default.Assignment, 7)
+                        ).forEach { (titulo, icone, destino) ->
+                            Card(
+                                modifier = Modifier.weight(1f).clickable { telaSelecionada = destino },
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                            ) {
+                                Column(Modifier.fillMaxWidth().padding(vertical = 13.dp, horizontal = 2.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                                    Icon(icone, contentDescription = titulo, tint = LaranjaUltra, modifier = Modifier.size(24.dp))
+                                    Text(titulo, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurface,
+                                        fontWeight = FontWeight.SemiBold, maxLines = 1)
+                                }
+                            }
+                        }
                     }
                     Text("ACOMPANHAMENTO", color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
