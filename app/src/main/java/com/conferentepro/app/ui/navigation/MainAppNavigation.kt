@@ -94,16 +94,16 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
         },
         bottomBar = {
             NavigationBar(containerColor = AzulMarinho, tonalElevation = 3.dp) {
-                NavigationBarItem(selected = telaSelecionada == 0, onClick = { telaSelecionada = 0 },
+                NavigationBarItem(colors = NavigationBarItemDefaults.colors(indicatorColor = LaranjaUltra.copy(alpha = 0.24f), selectedIconColor = Color.White, unselectedIconColor = Color.LightGray, selectedTextColor = Color.White, unselectedTextColor = Color.LightGray), selected = telaSelecionada == 0, onClick = { telaSelecionada = 0 },
                     icon = { Icon(Icons.Default.Dashboard, contentDescription = "Início", tint = if (telaSelecionada == 0) LaranjaUltra else Color.LightGray) },
                     label = { Text("Início", color = if (telaSelecionada == 0) Color.White else Color.LightGray, fontWeight = if (telaSelecionada == 0) FontWeight.Bold else FontWeight.Normal) })
-                NavigationBarItem(selected = telaSelecionada == 1, onClick = { telaSelecionada = 1 },
+                NavigationBarItem(colors = NavigationBarItemDefaults.colors(indicatorColor = LaranjaUltra.copy(alpha = 0.24f), selectedIconColor = Color.White, unselectedIconColor = Color.LightGray, selectedTextColor = Color.White, unselectedTextColor = Color.LightGray), selected = telaSelecionada == 1, onClick = { telaSelecionada = 1 },
                     icon = { Icon(Icons.Default.LocalShipping, contentDescription = "Remanejos", tint = if (telaSelecionada == 1) LaranjaUltra else Color.LightGray) },
                     label = { Text("Remanejos", color = if (telaSelecionada == 1) Color.White else Color.LightGray, fontWeight = if (telaSelecionada == 1) FontWeight.Bold else FontWeight.Normal) })
-                NavigationBarItem(selected = telaSelecionada == 2, onClick = { telaSelecionada = 2 },
+                NavigationBarItem(colors = NavigationBarItemDefaults.colors(indicatorColor = LaranjaUltra.copy(alpha = 0.24f), selectedIconColor = Color.White, unselectedIconColor = Color.LightGray, selectedTextColor = Color.White, unselectedTextColor = Color.LightGray), selected = telaSelecionada == 2, onClick = { telaSelecionada = 2 },
                     icon = { Icon(Icons.Default.QrCodeScanner, contentDescription = "Leitor EAN", tint = if (telaSelecionada == 2) LaranjaUltra else Color.LightGray) },
                     label = { Text("Leitor EAN", color = if (telaSelecionada == 2) Color.White else Color.LightGray, fontWeight = if (telaSelecionada == 2) FontWeight.Bold else FontWeight.Normal) })
-                NavigationBarItem(selected = telaSelecionada == 3, onClick = { telaSelecionada = 3 },
+                NavigationBarItem(colors = NavigationBarItemDefaults.colors(indicatorColor = LaranjaUltra.copy(alpha = 0.24f), selectedIconColor = Color.White, unselectedIconColor = Color.LightGray, selectedTextColor = Color.White, unselectedTextColor = Color.LightGray), selected = telaSelecionada == 3, onClick = { telaSelecionada = 3 },
                     icon = { Icon(Icons.Default.AutoAwesome, contentDescription = "Assistente", tint = if (telaSelecionada == 3) LaranjaUltra else Color.LightGray) },
                     label = { Text("Assistente", color = if (telaSelecionada == 3) Color.White else Color.LightGray, fontWeight = if (telaSelecionada == 3) FontWeight.Bold else FontWeight.Normal) })
             }
@@ -181,7 +181,7 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
                     ) {
                         Row(
-                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            modifier = Modifier.fillMaxWidth().padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
@@ -320,31 +320,6 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                             modifier = Modifier.weight(1f)
                         )
                     }
-                    Text("ACESSO RÁPIDO", color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        listOf(
-                            Triple("EAN", Icons.Default.QrCodeScanner, 2),
-                            Triple("Remanejo", Icons.Default.LocalShipping, 1),
-                            Triple("Produtos", Icons.Default.Inventory2, 8),
-                            Triple("Demandas", Icons.Default.Assignment, 7)
-                        ).forEach { (titulo, icone, destino) ->
-                            Card(
-                                modifier = Modifier.weight(1f).clickable { telaSelecionada = destino },
-                                shape = RoundedCornerShape(16.dp),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                            ) {
-                                Column(Modifier.fillMaxWidth().padding(vertical = 13.dp, horizontal = 2.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                                    Icon(icone, contentDescription = titulo, tint = LaranjaUltra, modifier = Modifier.size(24.dp))
-                                    Text(titulo, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurface,
-                                        fontWeight = FontWeight.SemiBold, maxLines = 1)
-                                }
-                            }
-                        }
-                    }
                     Text("ACOMPANHAMENTO", color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                     Card(
@@ -415,7 +390,7 @@ fun MainAppNavigation(isDarkTheme: Boolean, onToggleTheme: () -> Unit) {
                     val ocorrenciasPendentes = ocorrenciasAbertas.filter { it.status.equals("PENDENTE", true) }
                     val cobrancasPendentes = cobrancas.filter { !it.status.equals("RESOLVIDA", true) && !it.status.equals("CONCLUIDA", true) }
                     Spacer(Modifier.height(12.dp))
-                    Text("ATENÇÃO NECESSÁRIA", color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    Text("PENDÊNCIAS E ASSINATURAS", color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                     Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(22.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
@@ -687,7 +662,7 @@ private fun StatusResumoCard(
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.height(132.dp),
+        modifier = modifier.height(102.dp),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -702,12 +677,12 @@ private fun StatusResumoCard(
                 imageVector = icone,
                 contentDescription = null,
                 tint = cor,
-                modifier = Modifier.size(30.dp)
+                modifier = Modifier.size(23.dp)
             )
             Text(
                 text = quantidade.toString(),
                 color = AzulMarinho,
-                fontSize = 28.sp,
+                fontSize = 24.sp,
                 fontWeight = FontWeight.Bold
             )
             Text(
